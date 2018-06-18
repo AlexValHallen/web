@@ -1,0 +1,27 @@
+
+{
+"minertype":"Antminer S9",
+"nettype":"Static",
+"netdevice":"eth0",
+"macaddr":"4A:A9:1E:6D:B1:FC",
+"hostname":"10.0.2.38",
+"ipaddress":"10.0.2.38",
+"netmask":"255.255.255.0",
+"gateway":"10.0.2.254",
+"dnsservers":"10.0.2.254",
+"curtime":"14:42:07",
+"uptime":"3",
+"loadaverage":"0.17, 0.22, 0.22",
+"mem_total":"495632",
+"mem_used":"54340",
+"mem_free":"441292",
+"mem_buffers":"0",
+"mem_cached":"0",
+"system_mode":"GNU/Linux",
+"ant_hwv":"16.8.1.3",
+"system_kernel_version":"Linux 3.14.0-xilinx-ge8a2f71-dirty #82 SMP PREEMPT Tue May 16 19:49:53 CST 2017",
+"system_filesystem_version":"Fri Nov 17 17:57:49 CST 2017",
+"system_logic_version":"S9_V2.55",
+"bmminer_version":"2.0.0"
+}
+

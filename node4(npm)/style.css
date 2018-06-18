@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css?family=Cuprum|Droid+Serif|Exo+2|Montserrat|Roboto');
+
+html, body{
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.sec{
+    height: 100%;
+    width: 100%;
+    margin: auto;
+    display: table;
+    top: 0;
+}
+
+.intro{
+    background: url(/12/img/bk2.jpg) top left/cover #8888aa;
+}
+
+.intro .inner{
+    display: table-cell;
+    vertical-align: middle;
+    width: 100%;
+    max-width: none;
+}
+
+.content{
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+    padding-bottom: 10%;
+}
+
+h1{
+    text-transform: uppercase;
+    font: 36px 'Cuprum';
+    color: #979597;
+}
+
+h2{
+    font: italic 28px 'Droid Serif';
+    color: #db8264;
+}
+
+.btn{
+    font: 125% 'Roboto';
+    text-transform: uppercase;
+    text-decoration: none;
+    border: solid #db8264;
+    border-radius: 9px;
+    color: #db8264;
+    padding: 10px 20px;
+    transition: all 0.5s ease;
+}
+
+.btn:hover{
+    color: #cbdfd6;
+    border: solid #cbdfd6 2px;
+    transition: all 0.5s ease;
+}
+

@@ -1,0 +1,76 @@
+@import "./vendor/bootstrap/bootstrap.min.css"
+@import "./vendor/bootstrap/bootstrap-theme.css"
+@import "./vendor/rickshaw/graph.css"
+@import "./vendor/rickshaw/detail.css"
+
+body
+    padding: 20px
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif
+
+@media (max-width: 480px)
+    body
+        padding: 10px
+
+a
+    color: #00B7FF
+
+dt
+    font-weight: normal
+
+.graph-element
+    position: relative
+    .graph
+      height: 149px
+      margin-bottom: 20px
+    strong
+      position: absolute
+      left: 20px
+      top: 5px
+      opacity: 1
+    .x_label
+      &.bottom
+        bottom: 0
+    &:hover strong
+      opacity: 0
+
+#modules
+    section
+        position: relative
+        dl
+            margin-top: 0
+        .panel
+            .panel-body
+                word-break: break-all
+        .big-label
+            vertical-align: bottom
+            line-height: 30px
+        .big
+            margin-bottom: 10px
+            font-size: 30px
+            line-height: 30px
+        footer
+            position: absolute
+            right: 15px
+            bottom: 15px
+            font-size: 10px
+    .miner
+        .hashrate
+            @extend .graph-element
+        .devices
+            margin-bottom: 20px
+            table
+                margin-bottom: 15px
+                td
+                    &:nth-child(1)
+                        width: 30%
+                    &:nth-child(2)
+                        width: 35%
+    .revenue
+        .value
+            @extend .graph-element
+    .aggregatedMiners
+        .hashrate
+            @extend .graph-element
+    .market
+        .latestTrade
+            @extend .graph-element
