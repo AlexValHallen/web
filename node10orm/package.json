@@ -1,5 +1,5 @@
 {
-  "name": "parse",
+  "name": "node10orm",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,9 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "jsdom": "^11.11.0",
-    "ping": "^0.2.2",
-    "request": "^2.87.0",
-    "request-promise": "^4.2.2"
+    "mysql": "^2.15.0",
+    "mysql2": "^1.5.3",
+    "sequelize": "^4.37.10"
   }
 }

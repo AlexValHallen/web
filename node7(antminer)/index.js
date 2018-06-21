@@ -1,4 +1,4 @@
-/* var antminer = require('node-antminer');
+var antminer = require('node-antminer');
 
 var urls = [];
 for(var i=0; i<255; i++){
@@ -16,13 +16,13 @@ for(var j in urls){
             }
         });
 
-} */
+}
 
-var antminer = require('node-antminer');
-antminer.readStats("10.0.2.0",80,"root","root",(err, stats) => {
+/* var antminer = require('node-antminer');
+antminer.readStats("10.0.2.34",80,"root","root",(err, stats) => {
     if(err) {
         console.error("An error occurred fetching stats from antminer", err);
     } else {
         console.log("Incoming data: ", stats);
     }
-});
+}); */
