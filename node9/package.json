@@ -10,6 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "jsdom": "^11.11.0",
-    "request-promise": "^4.2.2"
+    "mysql": "^2.15.0",
+    "mysql2": "^1.5.3",
+    "request-promise": "^4.2.2",
+    "sequelize": "^4.38.0"
   }
 }
