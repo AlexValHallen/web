@@ -7,7 +7,7 @@ fs.writeFileSync(__dirname+'/info.txt', '');
 
 // Here comes the ORM
 const Sequelize = require('sequelize');
-var connection = new Sequelize('mydb', 'root', '', {
+var connection = new Sequelize('test1', 'root', '', {
     host: '127.0.0.1',
     dialect: 'mysql',
     insecureAuth: true,
@@ -52,7 +52,7 @@ exports.readParameters = async function(urls){
 
             //!! 2. TRYING TO PARSE MINER_STATUS.HTML !!
             
-            entryID = urls[k]+"/cgi-bin/minerStatus.cgi";
+            entryID = "http://"+urls[k]+"/cgi-bin/minerStatus.cgi";
 
             var options = {
                 uri: entryID,
@@ -66,7 +66,7 @@ exports.readParameters = async function(urls){
             
             await req(options, function (error, resp, body) {
                 if (!error && resp.statusCode == 200) {
-                    var curURL = entryID;
+                    var curURL = urls[k];
                     console.log(k+".☻ Receiving stats from "+curURL+"\n");
                     var stats = {};
 
@@ -120,7 +120,7 @@ exports.readParameters = async function(urls){
                             stats.wallets.push(poolRows[i].querySelector("#cbi-table-1-user").textContent);
                         }
                     }
-                    console.log(stats);                        
+                    //console.log(stats);                        
                     // THIS PART IS FOR PARSING CHAIN INFO (Freq, GH/s, HW, Temperature and ASIC status)
                     stats.chipTemps = [];
                     stats.hwerrs = [];
@@ -128,6 +128,7 @@ exports.readParameters = async function(urls){
                     stats.chainsGHRt = [];
                     stats.freqs = [];
                     stats.asicstat = [];
+                    stats.chainnums = [];
 
                     if(frag.querySelectorAll("table#ant_devs tbody tr.cbi-section-table-row").length==0 || frag.querySelectorAll("table#ant_devs tbody tr.cbi-section-table-row").length==null){
                         stats.chipTemps[0] = -2;
@@ -136,17 +137,19 @@ exports.readParameters = async function(urls){
                         stats.chainsGHRt[0] = -2;
                         stats.freqs[0] = -2;
                         stats.asicstat[0] = "ERROR";
+                        stats.chainnums[0] = 1;
                         var rows = 2;
                     }
                     else{
                         var chainRows = frag.querySelectorAll("table#ant_devs tbody tr.cbi-section-table-row");
-                        var rows = 0;
-                        for (var i = 0; i < chainRows.length; i++) { 
-                            if (chainRows[i].querySelector("#cbi-table-1-chain").textContent === 'Total') continue;
-                            rows++;
+                        var rows = chainRows.length;
+                        for (var i = 0; i < rows; i++) { 
+                            if (chainRows[i].querySelector("#cbi-table-1-chain").textContent === 'Total'){rows = rows-1; continue;}
+                            //rows++;
+                            stats.chainnums[i] = i+1;
                             var chipTemp = chainRows[i].querySelector("#cbi-table-1-temp2").textContent;
-                            /* if (chipTemp.indexOf("O:") > -1)
-                                chipTemp = chipTemp.substring(chipTemp.indexOf('O:') + 2); */
+                            if (chipTemp.indexOf("O:") > -1)
+                                chipTemp = chipTemp.substring(chipTemp.indexOf('O:') + 2);
                             if(chipTemp=='-' || chipTemp=='' || chipTemp==' '){
                                 stats.chipTemps[i] = -1; // ERROR: THAT MEANS THAT TEMP IS - OR EMPTY
                             }
@@ -162,12 +165,17 @@ exports.readParameters = async function(urls){
                                 stats.hwerrs[i] = parseInt(hwerr);
                             }
 
-                            var chainGHIl = chainRows[i].querySelector("#cbi-table-1-rate2").textContent;
-                            if(chainGHIl=='-' || chainGHIl=='' || chainGHIl==' ' || chainGHIl==null){
-                                stats.chainGHIl[i] = -1;
+                            if(chainRows[i].querySelector("#cbi-table-1-rate2")!==null){
+                                var chainGHIl = chainRows[i].querySelector("#cbi-table-1-rate2").textContent;
+                                if(chainGHIl=='-' || chainGHIl=='' || chainGHIl==' ' || chainGHIl==null){
+                                    stats.chainGHIl[i] = -1;
+                                }
+                                else{
+                                    stats.chainsGHIl[i] = parseFloat(chainGHIl.replace(',', ''));
+                                }
                             }
                             else{
-                                stats.chainsGHIl[i] = parseFloat(chainGHIl.replace(',', ''));
+                                stats.chainsGHIl[i] = 404;
                             }
 
                             var chainGHRt = chainRows[i].querySelector("#cbi-table-1-rate").textContent;
@@ -189,7 +197,7 @@ exports.readParameters = async function(urls){
                             stats.asicstat.push(chainRows[i].querySelector("#cbi-table-1-status").textContent)
                         }
                     }
-                    // console.log(stats);
+                     console.log(stats);
                     // AND THEN WE PUSH IT TO THE LIMIT! (in da db)
                      connection
                     .authenticate()
@@ -216,6 +224,7 @@ exports.readParameters = async function(urls){
 
                                 var DBChains = connection.define('MinerChains', {
                                     MacID: Sequelize.INTEGER,
+                                    ChainNum: Sequelize.INTEGER,
                                     HRateIl: Sequelize.FLOAT,
                                     HRateRt: Sequelize.FLOAT,
                                     Freq: Sequelize.FLOAT,
@@ -238,8 +247,9 @@ exports.readParameters = async function(urls){
                                         Wallet3: stats.wallets[2],
                                         IpAddr: curURL
                                     });
-                                    for(var xa=0; xa<rows-1; xa++){
+                                    for(var xa=0; xa<rows; xa++){
                                         DBChains.upsert({
+                                            ChainNum: stats.chainnums[xa],
                                             HRateIl: stats.chainsGHIl[xa],
                                             HRateRt: stats.chainsGHRt[xa],
                                             Freq: stats.freqs[xa],
