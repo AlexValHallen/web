@@ -10,6 +10,9 @@ for(var i=1; i<254; i++){
     urls2[i] = "10.0.2."+i;
 }
 
+var ass=["10.0.1.30"];
+antminer.readParameters(ass);
+
 //One part for parsing the Overview.json
 /* antminer.readStats(urls0);
 antminer.readStats(urls1);

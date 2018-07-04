@@ -1,0 +1,17 @@
+{
+  "name": "node11axios",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "node-antminer": "^0.1.5",
+    "request": "^2.87.0",
+    "request-promise": "^4.2.2"
+  }
+}

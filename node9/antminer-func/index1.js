@@ -18,7 +18,7 @@ var connection = new Sequelize('test1', 'root', '', {
 // USING REQUEST-PROMISE
 // A function to parse the HTML from /cgi-bin/minerStatus.cgi
 exports.readParameters = async function(urls){
-    /* var parseUptime = function(uptimeText) {
+    var parseUptime = function(uptimeText) {
         var uptime = 0;
         var startIndex = 0;
       
@@ -47,10 +47,10 @@ exports.readParameters = async function(urls){
       
         return uptime;
       
-      } */
-      for(var k in urls){
+      }
+    
+    for(var k in urls){
         try {
-
             //!! 2. TRYING TO PARSE MINER_STATUS.HTML !!
             
             entryID = "http://"+urls[k]+"/cgi-bin/minerStatus.cgi";
@@ -72,9 +72,9 @@ exports.readParameters = async function(urls){
                     var stats = {};
 
                     const frag = JSDOM.fragment(body);
-                    /* var uptimeText = frag.querySelector("#ant_elapsed").textContent;
+                    var uptimeText = frag.querySelector("#ant_elapsed").textContent;
 
-                    stats.uptime = parseUptime(uptimeText); */
+                    stats.uptime = parseUptime(uptimeText);
 
                     /* var gigaHash = false;
                     var tableTitles = frag.querySelectorAll("table#ant_devs tbody tr.cbi-section-table-titles th.cbi-section-table-cell");
