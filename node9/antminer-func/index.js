@@ -7,7 +7,7 @@ fs.writeFileSync(__dirname+'/info.txt', '');
 
 // Here comes the ORM
 const Sequelize = require('sequelize');
-var connection = new Sequelize('test1', 'root', '', {
+var connection = new Sequelize('smol', 'root', '', {
     host: '127.0.0.1',
     dialect: 'mysql',
     insecureAuth: true,
@@ -145,7 +145,19 @@ exports.readParameters = async function(urls){
                         var chainRows = frag.querySelectorAll("table#ant_devs tbody tr.cbi-section-table-row");
                         var rows = chainRows.length;
                         for (var i = 0; i < rows; i++) { 
-                            if (chainRows[i].querySelector("#cbi-table-1-chain").textContent === 'Total'){rows = rows-1; continue;}
+                            if (chainRows[i].querySelector("#cbi-table-1-chain").textContent === 'Total'){
+                                if(rows==1 && stats.GHRealtime==0){
+                                    stats.chainnums[i] = 0;
+                                    stats.chainsGHIl[i] = 0;
+                                    stats.chainsGHRt[i] = 0;
+                                    stats.freqs[i] = 0;
+                                    stats.chipTemps[i] = 0;
+                                    stats.hwerrs[i] = 0;
+                                    stats.asicstat.push("There might be a problem");
+                                    continue;
+                                }
+                                rows = rows-1; continue;
+                            }
                             //rows++;
                             stats.chainnums[i] = i+1;
                             var chipTemp = chainRows[i].querySelector("#cbi-table-1-temp2").textContent;
@@ -176,7 +188,7 @@ exports.readParameters = async function(urls){
                                 }
                             }
                             else{
-                                stats.chainsGHIl[i] = 404;
+                                stats.chainsGHIl[i] = -1;
                             }
 
                             var chainGHRt = chainRows[i].querySelector("#cbi-table-1-rate").textContent;
@@ -203,7 +215,7 @@ exports.readParameters = async function(urls){
                      connection
                     .authenticate()
                     .then(() => {
-                                console.log('Connection to the database has been established successfully.');
+                                //console.log('Connection to the database has been established successfully.');
 
                                 var DBPools = connection.define('Pools', {
                                     PoolName: Sequelize.STRING,
@@ -249,7 +261,7 @@ exports.readParameters = async function(urls){
                                         IpAddr: curURL
                                     });
                                     for(var xa=0; xa<rows; xa++){
-                                        DBChains.upsert({
+                                        DBChains.create({
                                             ChainNum: stats.chainnums[xa],
                                             HRateIl: stats.chainsGHIl[xa],
                                             HRateRt: stats.chainsGHRt[xa],
@@ -292,10 +304,11 @@ exports.readStats = async function(urls){
                 },
                 timeout: 4000
             };
-            var CURL = urls[j];
+            
             try{
                 await req(options, function(error, resp, body){
                     if (!error && resp.statusCode == 200){
+                        var CURL = urls[j];
                         console.log(j+". Receiving overview from "+CURL+"\n");
                             const overView = JSON.parse(body);
                             // !! 1. TRYING TO PARSE OVERVIEW.JSON !!
@@ -310,7 +323,7 @@ exports.readStats = async function(urls){
                         connection
                         .authenticate()
                         .then(() => {
-                                    console.log('Connection to the database has been established successfully.');
+                                    //console.log('Connection to the database has been established successfully.');
                                     var minerStat = connection.define("MinerStat", {
                                         MacAddr: Sequelize.STRING,
                                         IpAddr: Sequelize.STRING,
@@ -340,10 +353,11 @@ exports.readStats = async function(urls){
                         
                     }
                     else{
+                        var CURL = urls[j];
                         connection
                         .authenticate()
                         .then(() => {
-                                    console.log('Connection to the database has been established successfully.');
+                                    //console.log('Connection to the database has been established successfully.');
                                     var minerStat = connection.define("MinerStat", {
                                         MacAddr: Sequelize.STRING,
                                         IpAddr: Sequelize.STRING,
@@ -370,10 +384,11 @@ exports.readStats = async function(urls){
                         .catch(err => {
                                     console.error('Unable to connect to the database:', err);
                         });
-                        fs.appendFile(__dirname+"/info.txt", "\n"+CURL+". "+error+"\nHTML: "+body+"\n", function (wrt_err){
+                        /* fs.appendFile(__dirname+"/info.txt", "\n"+CURL+". "+error+"\nHTML: "+body+"\n", function (wrt_err){
                             if(wrt_err) throw wrt_err;
-                        });
+                        }); */
                     }
+                    
                 });
             }
             catch(e){

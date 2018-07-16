@@ -249,7 +249,7 @@ exports.readParameters = async function(urls){
                                         IpAddr: curURL
                                     });
                                     for(var xa=0; xa<rows; xa++){
-                                        DBChains.upsert({
+                                        DBChains.create({
                                             ChainNum: stats.chainnums[xa],
                                             HRateIl: stats.chainsGHIl[xa],
                                             HRateRt: stats.chainsGHRt[xa],
