@@ -7,8 +7,8 @@ fs.writeFileSync(__dirname+'/info.txt', '');
 
 // Here comes the ORM
 const Sequelize = require('sequelize');
-var connection = new Sequelize('smol', 'root', '', {
-    host: '127.0.0.1',
+var connection = new Sequelize('smol', 'sa', '`1234qwe', {
+    host: '10.0.0.250',
     dialect: 'mysql',
     insecureAuth: true,
     timezone: '+08:00',
@@ -139,7 +139,7 @@ exports.readParameters = async function(urls){
                         stats.freqs[0] = -2;
                         stats.asicstat[0] = "ERROR";
                         stats.chainnums[0] = 1;
-                        var rows = 2;
+                        var rows = 1;
                     }
                     else{
                         var chainRows = frag.querySelectorAll("table#ant_devs tbody tr.cbi-section-table-row");
@@ -212,11 +212,11 @@ exports.readParameters = async function(urls){
                     }
                      console.log(stats);
                     // AND THEN WE PUSH IT TO THE LIMIT! (in da db)
+                    var curURL = urls[k];
                      connection
                     .authenticate()
                     .then(() => {
                                 //console.log('Connection to the database has been established successfully.');
-
                                 var DBPools = connection.define('Pools', {
                                     PoolName: Sequelize.STRING,
                                     URL1: Sequelize.STRING,
