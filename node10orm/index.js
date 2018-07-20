@@ -1,29 +1,43 @@
-var Sequelize = require('sequelize');
-
-var connection = new Sequelize('test', 'root', '', {
-    host: '127.0.0.1',
+const Sequelize = require('sequelize');
+var connection = new Sequelize('smol', 'sa', '`1234qwe', {
+    host: '10.0.0.250',
     dialect: 'mysql',
-    insecureAuth: true
+    insecureAuth: true,
+    timezone: '+08:00',
+    define: { freezeTableName: true }
 });
-
-connection
-  .authenticate()
-  .then(() => {
-            console.log('Connection has been established successfully.');
-            var Article = connection.define('article', {
-                title: Sequelize.STRING,
-                body: Sequelize.TEXT
+function zhopa(){
+    connection.authenticate()
+        .then(() => {
+            console.log('Connection to the database has been established successfully.');
+            var minerStat = connection.define("MinerStat", {
+                MacAddr: Sequelize.STRING,
+                IpAddr: Sequelize.STRING,
+                Type: Sequelize.STRING,
+                Uptime: Sequelize.STRING,
+                HardwareVer: Sequelize.STRING,
+                KernelVer: Sequelize.STRING,
+                FsVer: Sequelize.STRING,
+                UserId: Sequelize.INTEGER
+            });
+            connection.sync().then(function () {
+                var res = minerStat.count({
+                    where: {
+                        Type:{
+                            ne: 'error'
+                        }
+                    }
+                }).then(
+                    res => {
+                        console.log("На данный момент отозвались: "+res+" майнеров");
+                    }
+                );
             });
             
-            connection.sync().then(function(){
-                Article.create({
-                    title: 'demo title',
-                    body: 'just a castaway, an island lost at sea, another lonely day with no one here but me oh, more loneliness than any man could bear rescue me before I fall into despair'
-                });
-            });
         })
-  .catch(err => {
+        .catch(err => {
             console.error('Unable to connect to the database:', err);
-  });
+        });
+    }
 
-
+    zhopa();

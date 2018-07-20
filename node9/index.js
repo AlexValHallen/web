@@ -53,7 +53,10 @@ function stats2(){
     antminer.readStats(urls2);
     setTimeout(params2, 2000);
 }
-
-setTimeout(stats0, 2000);
-/* setTimeout(stats1, 4000);
-setTimeout(stats2, 6000); */
+function ass(){
+    setTimeout(stats0, 2000);
+    setTimeout(stats1, 4000);
+    setTimeout(stats2, 6000);
+}
+antminer.readStats(urls2);
+//setInterval(ass, 1200000);
