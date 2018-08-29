@@ -1,15 +1,15 @@
 //! DO NOT OVERWRITE THIS LINE!!!!!!! TOKEN 637534229:AAHRWDJbIoBFABuNzMXTfg-72328Aewefrk
 
-const TOKEN = process.env.TELEGRAM_TOKEN || '637534229:AAHRWDJbIoBFABuNzMXTfg-72328Aewefrk'
-const TelegramBot = require('node-telegram-bot-api')
+const TOKEN = process.env.TELEGRAM_TOKEN || '637534229:AAHRWDJbIoBFABuNzMXTfg-72328Aewefrk';
+const TelegramBot = require('node-telegram-bot-api');
 const Agent = require('socks5-https-client/lib/Agent');
 const options = {
     polling: true,
     request: {
         agentClass: Agent,
         agentOptions: {
-            socksHost: "194.182.80.117",
-            socksPort: 1080,
+            socksHost: "89.40.127.96",
+            socksPort: 1080
             // If authorization is needed:
             // socksUsername: process.env.PROXY_SOCKS5_USERNAME,
             // socksPassword: process.env.PROXY_SOCKS5_PASSWORD
@@ -20,76 +20,121 @@ const req = require('request-promise');
 
 const Sequelize = require('sequelize');
 // WE CONNECT TO !SMOLENSHINA
-var connectSmolDB = new Sequelize('smol_v4', 'sa', '`1234qwe', {
+var connectSmolDB = new Sequelize('smol_v5', 'sa', '`1234qwe', {
     host: '10.0.0.250',
     dialect: 'mysql',
     insecureAuth: true,
     timezone: '+08:00',
-    define: { freezeTableName: true }
-    //logging: false
+    define: { freezeTableName: true },
+    logging: false
 });
 // WE CONNECT TO !OLIMPISKIY
-var connectOlympDB = new Sequelize('olymp', 'sa', '`1234qwe', {
+var connectOlympDB = new Sequelize('olymp_v2', 'sa', '`1234qwe', {
     host: '25.13.113.33',
     dialect: 'mysql',
     insecureAuth: true,
     timezone: '+08:00',
-    define: { freezeTableName: true }
-    //logging: false
+    define: { freezeTableName: true },
+    logging: false
 });
 const Op = Sequelize.Op;
 
 // NOW THERE'S A LIST OF ADMINS
 auth_users = [
     // Delete these and add your own user id
-    468477832 // dats me
+    468477832 // dats my ass
 ]
 
 const KEYBOARD = {
     reply_markup: JSON.stringify({
         keyboard: [
-            ['Ваш ID / Your ID', 'Помощь / Help'],
-            ['Статистика Смоленщина / Stats Smol', 'Статистика Олимпийский / Stats Olymp'],
-            ['Reboot 10.0.10.28']
+            ['Статистика / Stats', 'Перезапустить / Reboot'],
+            ['Ваш ID / Your ID', 'Помощь / Help']
         ]
     })
-}
+};
+
+const newbieKbrd = {
+    reply_markup: JSON.stringify({
+        keyboard: [
+            ['Ваш ID / Your ID', 'Помощь / Help']
+        ]
+    })
+};
+
+const confirmKbrd = {
+    reply_markup: JSON.stringify({
+        inline_keyboard: [
+            [{ text: 'Да / Yes', callback_data: 'y' }],
+            [{ text: 'Нет / No', callback_data: 'n' }]
+        ]
+    })
+};
+
 var fs = require('fs');
 const bot = new TelegramBot(TOKEN, options)
 console.log("Channel open. Comm-link online");
 // WHEN BOT STARTS, THIS HAPPENS
+
 bot.onText(/\/start/, (msg, match) => {
     console.log("Warning! A new user approaches with ID "+msg.chat.id);
     fs.appendFileSync(__dirname+"/users_id.txt", msg.chat.id+"\n");
-    bot.sendMessage(msg.chat.id, "Добро пожаловать! Пожалуйста, сообщите свой Telegram-ID разработчику для правильной работы бота", KEYBOARD);
+    if (authenticate_users(msg.from.id)) {
+        bot.sendMessage(msg.chat.id, "Добро пожаловать! Вы можете нажать на любую кнопку, либо вручную ввести нужную вам команду. Наберите символ слэш, чтобы лицезреть список команд.", KEYBOARD);
+    }
+    else{
+        bot.sendMessage(msg.chat.id, "Добро пожаловать! Пожалуйста, сообщите свой Telegram-ID техподдержке для правильной работы бота", newbieKbrd);
+    }
 });
+
+bot.onText(/\/help/, (msg, match) => {
+    if (authenticate_users(msg.from.id)) {
+        bot.sendMessage(msg.chat.id, "Вы можете нажать на любую кнопку, либо вручную ввести нужную вам команду. Наберите символ слэш, чтобы лицезреть список комманд", KEYBOARD);
+    }
+    else{
+        bot.sendMessage(msg.chat.id, "Чтобы начать работу, сообщите свой Telegram-ID техподдержке", newbieKbrd);
+    }
+});
+
 // NOW WE HEAR YOUR COMMANDS
 bot.onText(/(.+)/, (msg, match) => {
     if (match[0] == 'Ваш ID / Your ID') {
-        bot.sendMessage(msg.chat.id, 'ID: ' + msg.from.id + '\nЕсли вы еще не сообщили свой Telegram-ID разработчику, то лучше это сделать)', KEYBOARD);    
+        bot.sendMessage(msg.chat.id, 'ID: ' + msg.from.id, KEYBOARD);    
     }
     else if(match[0] == 'Помощь / Help'){
-        bot.sendMessage(msg.chat.id, 'Выберите любую кнопку. Если что-то не работает, свяжитесь с разработчиком', KEYBOARD);
+        if (authenticate_users(msg.from.id)) {
+            bot.sendMessage(msg.chat.id, "Вы можете нажать на любую кнопку, либо вручную ввести нужную вам команду. Наберите символ слэш, чтобы лицезреть список комманд", KEYBOARD);
+        }
+        else{
+            bot.sendMessage(msg.chat.id, "Чтобы начать работу, сообщите свой Telegram-ID техподдержке", newbieKbrd);
+        }
     }  
     else if (authenticate_users(msg.from.id)) {
         bot.sendMessage(msg.chat.id,KEYBOARD); 
-        if(match[0] == 'Статистика Смоленщина / Stats Smol'){
-            showStatsSmol(msg.chat.id);
-            bot.sendMessage(msg.chat.id, KEYBOARD); 
+        if(match[0] == 'Статистика / Stats'){
+            showStats(msg.chat.id);
         }
-        else if(match[0] == 'Статистика Олимпийский / Stats Olymp'){
-            showStatsOlymp(msg.chat.id);
-            bot.sendMessage(msg.chat.id, KEYBOARD); 
-        }
-        else if(match[0] == 'Reboot 10.0.10.28'){
-            reboot(msg.chat.id);
-            bot.sendMessage(msg.chat.id, KEYBOARD); 
+        else if(match[0] == 'Перезапустить / Reboot'){
+            bot.sendMessage(msg.chat.id, "Будут перезапущены \"горячие\" майнеры, а также майнеры с низким хешрейтом. Продолжить?", confirmKbrd);
+            var ass = msg.message_id;
+            bot.on('callback_query', function (msg) {
+                if (msg.data == 'y'){
+                    console.log('User '+msg.chat.id+' is rebooting his miners');
+                    bot.deleteMessage(msg.chat.id, ass);
+                }
+                else if (msg.data == 'n'){
+                    console.log('User '+msg.chat.id+' canceled rebooting');
+                    bot.deleteMessage(msg.chat.id, ass);
+                }
+            });
         }
     } 
     else {
-        bot.sendMessage(msg.chat.id, 'ВАМ ТУТ НЕ РАДЫ / Unauthorized User', KEYBOARD);    
+        bot.sendMessage(msg.chat.id, 'ВАМ ТУТ НЕ РАДЫ / Unauthorized User', newbieKbrd);    
     }
 });
+
+
 
 function authenticate_users(id) {
     for(let i = 0; i < auth_users.length; i++) {
@@ -100,218 +145,78 @@ function authenticate_users(id) {
     return false
 }
 
-async function showStatsSmol(chatId){
-    try{
-        var minerCountSmol = await connectSmolDB.query("SELECT COUNT(*) FROM smol_v4.minerstat WHERE Type<>'error';", { type: connectSmolDB.QueryTypes.SELECT});
-        minerCountSmol = Object.values(minerCountSmol[0]);
-        bot.sendMessage(chatId, "В Смоленщине на данный момент "+minerCountSmol+" майнеров в сети");
+async function showStats(chatId){
+    console.log('Someone is requesting for Stats: '+chatId);
+    var userWallet;
 
-        var sumHrateSmol = await connectSmolDB.query("SELECT SUM(RtHashrate) FROM smol_v4.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol_v4.minerstat WHERE Type<>'error');", { type: connectSmolDB.QueryTypes.SELECT});
-        sumHrateSmol = Object.values(sumHrateSmol[0]);
-        sumHrateSmol = sumHrateSmol.toLocaleString('ru');
-        bot.sendMessage(chatId, "Общий RealTime хэшрейт:\n"+sumHrateSmol+" GH/S");
-        
-        var aliveChainsCountSmol = await connectSmolDB.query("SELECT SUM(AliveChains) FROM smol_v4.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol_v4.minerstat WHERE Type<>'error');", { type: connectSmolDB.QueryTypes.SELECT});
-        aliveChainsCountSmol = Object.values(aliveChainsCountSmol[0]);
-        bot.sendMessage(chatId, "Общее количество плат в сети:\n"+aliveChainsCountSmol);
-    }
-    catch(error){
-        bot.sendMessage(chatId, "ERROR!\n"+error);
-    }
-}
+    // ДОБАВЛЯЕМ ЮЗЕРОВ ЗДЕСЬ И ЕЩЕ НИЖЕ
 
-async function showStatsOlymp(chatId){
-    try{
-        var minerCountOlymp = await connectOlympDB.query("SELECT COUNT(*) FROM olymp.minerstat WHERE Type<>'error';", { type: connectOlympDB.QueryTypes.SELECT});
-        minerCountOlymp = Object.values(minerCountOlymp[0]);
-        bot.sendMessage(chatId, "В Олимпийском на данный момент "+minerCountOlymp+" майнеров в сети");
-
-        var sumHrateOlymp = await connectOlympDB.query("SELECT SUM(RtHashrate) FROM olymp.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp.minerstat WHERE Type<>'error');", { type: connectOlympDB.QueryTypes.SELECT});
-        sumHrateOlymp = Object.values(sumHrateOlymp[0]);
-        sumHrateOlymp = sumHrateOlymp.toLocaleString('ru');
-        bot.sendMessage(chatId, "Общий RealTime хэшрейт:\n"+sumHrateOlymp+" GH/S");
-        
-        var aliveChainsCountOlymp = await connectOlympDB.query("SELECT SUM(AliveChains) FROM olymp.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp.minerstat WHERE Type<>'error');", { type: connectOlympDB.QueryTypes.SELECT});
-        aliveChainsCountOlymp = Object.values(aliveChainsCountOlymp[0]);
-        bot.sendMessage(chatId, "Общее количество плат в сети:\n"+aliveChainsCountOlymp);
-    }
-    catch(error){
-        bot.sendMessage(chatId, "ERROR!\n"+error);
-    }
-}
-    // Requesting all for one time when the app starts
-    alert();    
-
-    // and then we fight, like men in tights
-    setInterval(alert, 480000);
-
-Array.prototype.diff = function(a) {
-    return this.filter(function(i){return a.indexOf(i) < 0;});
-};
-
-    var olympMiners, smolMiners, olympRate, smolRate, smolChains, olympChains;
-    var resOlymp0 = []; 
-    var resSmol0 = [];
-
-async function alert(){
-    // Текущее время вызова в миллисекундах
-    var currDate = getCurrentDate();
-    
-    try{
-        // Количество машинок в Олимпийском
-        var minerCountOlymp = await connectOlympDB.query("SELECT COUNT(*) FROM olymp.minerstat WHERE Type<>'error';", { type: connectOlympDB.QueryTypes.SELECT});
-        minerCountOlymp = Object.values(minerCountOlymp[0]);
-        minerCountOlymp = parseInt(minerCountOlymp[0], 10);
-        // Получим список этих машинок и выведем вышедших из сети
-        var minerListOlymp = await connectOlympDB.query("SELECT IpAddr FROM olymp.minerstat WHERE Type<>'error'", { type: connectOlympDB.QueryTypes.SELECT});
-        var resOlymp = [];
-        var absentOlymp = [];
-        for(var i=0; i<minerListOlymp.length; i++){
-            var ip = Object.values(minerListOlymp[i]);
-            resOlymp.push(ip[0]);
-        }
-        // Количество живых плат в Олимпийском
-        var aliveChainsCountOlymp = await connectOlympDB.query("SELECT SUM(AliveChains) FROM olymp.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp.minerstat WHERE Type<>'error');", { type: connectOlympDB.QueryTypes.SELECT});
-        aliveChainsCountOlymp = Object.values(aliveChainsCountOlymp[0]);
-        aliveChainsCountOlymp = parseInt(aliveChainsCountOlymp, 10);
-        olympChains = aliveChainsCountOlymp;
-        // Если разница между проходами в 3 майнера, сигналим
-        if(olympMiners-minerCountOlymp>=3){
-            for(var j=0; j<resOlymp0.length; j++){
-                if(resOlymp.indexOf(resOlymp0[j])==-1){
-                    absentOlymp.push(resOlymp0[j]);
-                }
-            }
-            for(authUser in auth_users){
-                bot.sendMessage(auth_users[authUser], 'Из сети вышло ' + (olympMiners-minerCountOlymp) + ' майнеров в Олимпийском');
-            }
-            for(authUser in auth_users){
-                bot.sendMessage(auth_users[authUser], 'Из сети вышло ' + (olympChains-aliveChainsCountOlymp) + ' плат в Олимпийском');
-            }
-            if(absentOlymp.length!=0){
-                for(authUser in auth_users){
-                    bot.sendMessage(auth_users[authUser], 'Список вышедших: ' + absentOlymp + ' майнеров в Олимпийском');
-                }
-            }
-        }
-        resOlymp0 = resOlymp;
-        olympMiners = minerCountOlymp;
-
-        // Хешрейт в Олимпийском
-        var sumHrateOlymp = await connectOlympDB.query("SELECT SUM(RtHashrate) FROM olymp.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp.minerstat WHERE Type<>'error');", { type: connectOlympDB.QueryTypes.SELECT});
-        sumHrateOlymp = Object.values(sumHrateOlymp[0]);
-        sumHrateOlymp = parseFloat(sumHrateOlymp[0], 10);
-        if(sumHrateOlymp/olympRate<=0.95){
-            for(authUser in auth_users){
-                bot.sendMessage(auth_users[authUser], 'WARNING! Хешрейт упал на' + (olympRate-sumHrateOlymp) + ' в Олимпийском');
-            }
-        }
-        olympRate = sumHrateOlymp;
-        
-        // Проверим время последнего апдейта в БД (тоже в миллисекундах)
-        var lastUpdOlymp = await connectOlympDB.query("SELECT updatedAt FROM olymp.minerstat LIMIT 1");
-        lastUpdOlymp = Object.values(lastUpdOlymp[0]);
-        lastUpdOlymp = Object.values(lastUpdOlymp[0]);
-        lastUpdOlymp = String(lastUpdOlymp[0]);
-        lastUpdOlymp = lastUpdOlymp.substring(0,10)+" "+lastUpdOlymp.substring(11,19);
-        lastUpdOlymp = Date.parse(lastUpdOlymp);
-
-        // Если с последнего апдейта прошло полдня (12 часов), то сигналим
-        if(currDate-lastUpdOlymp>=43200000){
-            for(authUser in auth_users){
-                bot.sendMessage(auth_users[authUser], 'WARNING! C полследнего обновления в БД Олимпийского прошло больше полудня. Проверьте БД и опросчик');
-            }
-        }
-    }
-    catch(er){
-        if(er=="SequelizeConnectionError: connect ETIMEDOUT"){
-            for(authUser in auth_users){
-                bot.sendMessage(auth_users[authUser], 'WARNING! Нет подключения к БД в Олимпийском. Проверьте БД и опросник\n'+er);
-            }
-        }
-        else{
-            for(authUser in auth_users){
-                bot.sendMessage(auth_users[authUser], 'Error Olymp:\n'+er);
-            }
-        }
+    switch(chatId){
+        case 468477832:
+            userWallet = '\'1NBMQ%\'';
+            break;
     }
     try{
-        // Количество машинок в Смоленщине
-        var minerCountSmol = await connectSmolDB.query("SELECT COUNT(*) FROM smol_v4.minerstat WHERE Type<>'error';", { type: connectSmolDB.QueryTypes.SELECT });
-        minerCountSmol = Object.values(minerCountSmol[0]);
-        minerCountSmol = parseInt(minerCountSmol[0], 10);
-        // Получим список этих машинок и выведем вышедших из сети
-        var minerListSmol = await connectSmolDB.query("SELECT IpAddr FROM smol_v4.minerstat WHERE Type<>'error'", { type: connectSmolDB.QueryTypes.SELECT});
-        var resSmol = [];
-        var absentSmol = [];
-        for(var i=0; i<minerListSmol.length; i++){
-            var ip = Object.values(minerListSmol[i]);
-            resSmol.push(ip[0]);
-        }
-        for(var j=0; j<resSmol0.length; j++){
-            if(resSmol.indexOf(resSmol0[j])==-1){
-                absentSmol.push(resSmol0[j]);
-            }
-        }
-        // Количество живых плат в Смоленщине
-        var aliveChainsCountSmol = await connectSmolDB.query("SELECT SUM(AliveChains) FROM smol_v4.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol_v4.minerstat WHERE Type<>'error');", { type: connectSmolDB.QueryTypes.SELECT });
-        aliveChainsCountSmol = Object.values(aliveChainsCountSmol[0]);
-        aliveChainsCountSmol = parseInt(aliveChainsCountSmol, 10);
-        if(smolChains-aliveChainsCountSmol>=8){
-            for(authUser in auth_users){
-                bot.sendMessage(auth_users[authUser], 'Из сети вышло ' + (smolChains-aliveChainsCountSmol) + ' плат в Смоленщине');
-            }
-        }
-        smolChains = aliveChainsCountSmol;
-        // Если разница между проходами в 3 майнера, сигналим
-        if(smolMiners-minerCountSmol>=3){
-            for(authUser in auth_users){
-                bot.sendMessage(auth_users[authUser], 'Из сети вышло ' + (smolMiners-minerCountSmol) + ' майнеров в Смоленщине');
-            }
-            if(absentSmol.length!=0){
-                for(authUser in auth_users){
-                    bot.sendMessage(auth_users[authUser], 'Список вышедших: ' + absentSmol + ' майнеров в Смоленщине');
-                }
-            }
-        }
-        smolMiners = minerCountSmol;
-        resSmol0 = resSmol;
+        // Количество машинок в Смоленщине клиента
+        var smolMiners = await connectSmolDB.query("SELECT COUNT(*) FROM smol_v5.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol_v5.minerstat WHERE Type<>'error') AND User LIKE "+userWallet, { type: connectSmolDB.QueryTypes.SELECT });
+        smolMiners = Object.values(smolMiners[0]);
+        smolMiners = parseInt(smolMiners[0], 10);
+        // Количество машинок в Олимпийском клиента
+        var olympMiners = await connectOlympDB.query("SELECT COUNT(*) FROM olymp_v2.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp_v2.minerstat WHERE Type<>'error') AND User LIKE "+userWallet, { type: connectOlympDB.QueryTypes.SELECT });
+        olympMiners = Object.values(olympMiners[0]);
+        olympMiners = parseInt(olympMiners[0], 10);
         // Хешрейт в Смоленщине
-        var sumHrateSmol = await connectSmolDB.query("SELECT SUM(RtHashrate) FROM smol_v4.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol_v4.minerstat WHERE Type<>'error');", { type: connectSmolDB.QueryTypes.SELECT });
-        sumHrateSmol = Object.values(sumHrateSmol[0]);
-        sumHrateSmol = parseFloat(sumHrateSmol[0], 10);
-        if(sumHrateSmol/smolRate<=0.95){
-            for(authUser in auth_users){
-                bot.sendMessage(auth_users[authUser], 'WARNING! Хешрейт упал на' + (smolRate-sumHrateSmol) + ' в Смоленщине');
-            }
+        var smolRate = await connectSmolDB.query("SELECT SUM(RtHashrate) FROM smol_v5.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol_v5.minerstat WHERE Type<>'error') AND User LIKE "+userWallet, { type: connectSmolDB.QueryTypes.SELECT });
+        smolRate = Object.values(smolRate[0]);
+        smolRate = parseFloat(smolRate[0], 10);
+        // Хешрейт в Олимпийском
+        var olympRate = await connectOlympDB.query("SELECT SUM(RtHashrate) FROM olymp_v2.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp_v2.minerstat WHERE Type<>'error') AND User LIKE "+userWallet, { type: connectOlympDB.QueryTypes.SELECT });
+        olympRate = Object.values(olympRate[0]);
+        olympRate = parseFloat(olympRate[0], 10);
+        // Получим количество горячих майнеров (со средней температурой выше 84)
+        var hotMinersSmolCount = await connectSmolDB.query("SELECT COUNT(*) FROM smol_v5.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol_v5.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84;", { type: connectSmolDB.QueryTypes.SELECT});
+        hotMinersSmolCount = Object.values(hotMinersSmolCount[0]);
+        hotMinersSmolCount = parseInt(hotMinersSmolCount[0], 10);
+
+        var hotMinersOlympCount = await connectOlympDB.query("SELECT COUNT(*) FROM olymp_v2.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp_v2.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84;", { type: connectOlympDB.QueryTypes.SELECT});
+        hotMinersOlympCount = Object.values(hotMinersOlympCount[0]);
+        hotMinersOlympCount = parseInt(hotMinersOlympCount[0], 10);
+        // Получим майнеры с нулевым хешрейтом
+        var uselessSmol = await connectSmolDB.query("SELECT IpAddr FROM smol_v5.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol_v5.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND RtHashrate=0", { type: connectSmolDB.QueryTypes.SELECT});
+        var resUselessSmol = [];
+        for(var i=0; i<uselessSmol.length; i++){
+            var ip = Object.values(uselessSmol[i]);
+            resUselessSmol.push(ip[0]);
         }
-        smolRate = sumHrateSmol;
-        
-        // Проверим время последнего апдейта в БД (тоже в миллисекундах)
-        var lastUpdSmol = await connectSmolDB.query("SELECT updatedAt FROM smol_v4.minerstat LIMIT 1");
-        lastUpdSmol = Object.values(lastUpdSmol[0]);
-        lastUpdSmol = Object.values(lastUpdSmol[0]);
-        lastUpdSmol = String(lastUpdSmol[0]);
-        lastUpdSmol = lastUpdSmol.substring(0,10)+" "+lastUpdSmol.substring(11,19);
-        lastUpdSmol = Date.parse(lastUpdSmol);
-        
-        // Если с последнего апдейта прошло полдня (12 часов), то сигналим
-        if(currDate-lastUpdSmol>=43200000){
-            for(authUser in auth_users){
-                bot.sendMessage(auth_users[authUser], 'WARNING! С последнее обновление в БД Смоленщины прошло больше полудня. Проверьте БД и опросчик');
-            }
+
+        // Получим майнеры с нулевым хешрейтом
+        var uselessOlymp = await connectOlympDB.query("SELECT IpAddr FROM olymp_v2.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp_v2.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND RtHashrate=0", { type: connectOlympDB.QueryTypes.SELECT});
+        var resUselessOlymp = [];
+        for(var i=0; i<uselessOlymp.length; i++){
+            var ip = Object.values(uselessOlymp[i]);
+            resUselessOlymp.push(ip[0]);
         }
+
+        // Проверим время последнего апдейта в БД
+        var fssLUpdSmol = await connectSmolDB.query("SELECT updatedAt FROM smol_v5.minerstat LIMIT 1");
+        fssLUpdSmol = Object.values(fssLUpdSmol[0]);
+        fssLUpdSmol = Object.values(fssLUpdSmol[0]);
+        fssLUpdSmol = String(fssLUpdSmol[0]);
+        
+        // Резалт слаживаем
+        var resMiners = smolMiners+olympMiners;
+        var resHRate = smolRate+olympRate;
+        var resHotMiners = hotMinersSmolCount+hotMinersOlympCount;
+       
+        bot.sendMessage(chatId, 'Ваших майнеров в сети: ' + resMiners + '\nRT-HashRate: ' + resHRate.toLocaleString('ru') + ' GH/S' +'\n\"Горячих\" майнеров: '+resHotMiners+'\nМайнеров с нормальным хешрейтом: '+(resMiners-(uselessOlymp.length+uselessSmol.length))+'\nМайнеров с низким хешрейтом: '+(uselessOlymp.length+uselessSmol.length)+ '\nДата последнего обновления в БД:\n' + fssLUpdSmol, KEYBOARD);
+        
     }
-    catch(er){
-        if(er=="SequelizeConnectionError: connect ETIMEDOUT"){
-            for(authUser in auth_users){
-                bot.sendMessage(auth_users[authUser], 'WARNING! Нет подключения к БД в Смоленщине. Проверьте БД и опросник\n'+er);
-            }
+    catch(error){
+        if(error=="SequelizeConnectionError: connect ETIMEDOUT"){
+            bot.sendMessage(chatId, "Ошибка: нет подключения к БД\n"+error);
         }
         else{
-            for(authUser in auth_users){
-                bot.sendMessage(auth_users[authUser], 'Error Smol:\n'+er);
-            }
+            bot.sendMessage(chatId, "ERROR!\n"+error);
         }
     }
 }
@@ -334,8 +239,34 @@ function getCurrentDate() {
 }
 
 async function reboot(chatId){
+    var userWallet;
+    // И ЗДЕСЬ МЕНЯЕМ
+    switch(chatId){
+        case 468477832:
+            userWallet = '\'1NBMQ%\'';
+            break;
+    }
+    // Получим список майнеров со средней температурой выше 84 или нулевым хешрейтом
+    var hotQuerySmol = await connectSmolDB.query("SELECT IpAddr FROM smol_v5.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol_v5.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84 OR RtHashrate=0;", { type: connectSmolDB.QueryTypes.SELECT});
+    var hotMinersSmol = [];
+    for(var i=0; i<hotQuerySmol.length; i++){
+        var ip = Object.values(hotQuerySmol[i]);
+        hotMinersSmol.push(ip[0]);
+    }
+
+    var hotQueryOlymp = await connectOlympDB.query("SELECT IpAddr FROM olymp_v2.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp_v2.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84 OR RtHashrate=0;", { type: connectOlympDB.QueryTypes.SELECT});
+    var hotMinersOlymp = [];
+    for(var i=0; i<hotQueryOlymp.length; i++){
+        var ip = Object.values(hotQueryOlymp[i]);
+        hotMinersOlymp.push(ip[0]);
+    }
+    // Сконкатинируем это все в один массив
+    var hotMiners = hotMinersSmol;
+    hotMiners = hotMiners.concat(hotMinersOlymp);
+    
+    for(var j in hotMiners){
             try{
-                entryID = "http://10.0.10.28/cgi-bin/reboot.cgi";
+                entryID = "http://"+hotMiners[j]+"/cgi-bin/reboot.cgi";
                 var options = {
                     method: 'GET',
                     uri: entryID,
@@ -347,18 +278,13 @@ async function reboot(chatId){
                     timeout: 3000
                 };
                 await req(options, function (error, resp, body) {
-                    if (!error && resp.statusCode == 200) {
-                        console.log('zbs');
-                        bot.sendMessage(chatId, 'Succesfully rebooted');
-                    }
-                    else{
-                        console.log('niet');
-                        bot.sendMessage(chatId, 'Reboot failed');
-                    }
+                    console.log('zbs');
+                    bot.sendMessage(chatId, 'Succesfully rebooted '+hotMiners[j]);
                 });
             }
             catch(e){
-                console.log('ERROR');
-                bot.sendMessage(chatId, e);
+                console.log('ERROR '+hotMiners[j]);
+                //bot.sendMessage(chatId, e);
             }
+    }
 }
