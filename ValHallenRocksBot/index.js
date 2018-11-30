@@ -5,22 +5,28 @@ const TelegramBot = require('node-telegram-bot-api');
 const Agent = require('socks5-https-client/lib/Agent');
 const options = {
     polling: true,
+    polling: {
+        params:{
+            timeout: 20
+        }
+    },
     request: {
         agentClass: Agent,
         agentOptions: {
-            socksHost: "89.40.127.96",
-            socksPort: 1080
+            socksHost: "tgproxy.audd.io",
+            socksPort: 1080,
             // If authorization is needed:
-            // socksUsername: process.env.PROXY_SOCKS5_USERNAME,
-            // socksPassword: process.env.PROXY_SOCKS5_PASSWORD
+            socksUsername: 'user',
+            socksPassword: 'password'
         }
+        //proxy:'cfd1400c8002cb3cec1da036f62f7b0e@paparoxy.me:443'
     }
 }
 const req = require('request-promise');
 
 const Sequelize = require('sequelize');
 // WE CONNECT TO !SMOLENSHINA
-var connectSmolDB = new Sequelize('smol_v5', 'sa', '`1234qwe', {
+var connectSmolDB = new Sequelize('smol2018', 'sa', '`1234qwe', {
     host: '10.0.0.250',
     dialect: 'mysql',
     insecureAuth: true,
@@ -29,7 +35,7 @@ var connectSmolDB = new Sequelize('smol_v5', 'sa', '`1234qwe', {
     logging: false
 });
 // WE CONNECT TO !OLIMPISKIY
-var connectOlympDB = new Sequelize('olymp_v2', 'sa', '`1234qwe', {
+var connectOlympDB = new Sequelize('olymp2018', 'sa', '`1234qwe', {
     host: '25.13.113.33',
     dialect: 'mysql',
     insecureAuth: true,
@@ -89,7 +95,7 @@ bot.onText(/\/start/, (msg, match) => {
 
 bot.onText(/\/help/, (msg, match) => {
     if (authenticate_users(msg.from.id)) {
-        bot.sendMessage(msg.chat.id, "Вы можете нажать на любую кнопку, либо вручную ввести нужную вам команду. Наберите символ слэш, чтобы лицезреть список комманд", KEYBOARD);
+        bot.sendMessage(msg.chat.id, "Вы можете нажать на любую кнопку, либо вручную ввести нужную вам команду. Наберите символ слэш, чтобы лицезреть список комманд. \r\nЗЫ \"Горячие\" майнеры - майнеры, средняя температура которых превышает 85 градусов", KEYBOARD);
     }
     else{
         bot.sendMessage(msg.chat.id, "Чтобы начать работу, сообщите свой Telegram-ID техподдержке", newbieKbrd);
@@ -103,7 +109,7 @@ bot.onText(/(.+)/, (msg, match) => {
     }
     else if(match[0] == 'Помощь / Help'){
         if (authenticate_users(msg.from.id)) {
-            bot.sendMessage(msg.chat.id, "Вы можете нажать на любую кнопку, либо вручную ввести нужную вам команду. Наберите символ слэш, чтобы лицезреть список комманд", KEYBOARD);
+            bot.sendMessage(msg.chat.id, "Вы можете нажать на любую кнопку, либо вручную ввести нужную вам команду. Наберите символ слэш, чтобы лицезреть список комманд. \r\nЗЫ \"Горячие\" майнеры - майнеры, средняя температура которых превышает 85 градусов", KEYBOARD);
         }
         else{
             bot.sendMessage(msg.chat.id, "Чтобы начать работу, сообщите свой Telegram-ID техподдержке", newbieKbrd);
@@ -120,11 +126,9 @@ bot.onText(/(.+)/, (msg, match) => {
             bot.on('callback_query', function (msg) {
                 if (msg.data == 'y'){
                     console.log('User '+msg.chat.id+' is rebooting his miners');
-                    bot.deleteMessage(msg.chat.id, ass);
                 }
                 else if (msg.data == 'n'){
                     console.log('User '+msg.chat.id+' canceled rebooting');
-                    bot.deleteMessage(msg.chat.id, ass);
                 }
             });
         }
@@ -153,36 +157,36 @@ async function showStats(chatId){
 
     switch(chatId){
         case 468477832:
-            userWallet = '\'1NBMQ%\'';
+            userWallet = '\'1C8%\'';
             break;
     }
     try{
         // Количество машинок в Смоленщине клиента
-        var smolMiners = await connectSmolDB.query("SELECT COUNT(*) FROM smol_v5.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol_v5.minerstat WHERE Type<>'error') AND User LIKE "+userWallet, { type: connectSmolDB.QueryTypes.SELECT });
+        var smolMiners = await connectSmolDB.query("SELECT COUNT(*) FROM smol2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet, { type: connectSmolDB.QueryTypes.SELECT });
         smolMiners = Object.values(smolMiners[0]);
         smolMiners = parseInt(smolMiners[0], 10);
         // Количество машинок в Олимпийском клиента
-        var olympMiners = await connectOlympDB.query("SELECT COUNT(*) FROM olymp_v2.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp_v2.minerstat WHERE Type<>'error') AND User LIKE "+userWallet, { type: connectOlympDB.QueryTypes.SELECT });
+        var olympMiners = await connectOlympDB.query("SELECT COUNT(*) FROM olymp2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet, { type: connectOlympDB.QueryTypes.SELECT });
         olympMiners = Object.values(olympMiners[0]);
         olympMiners = parseInt(olympMiners[0], 10);
         // Хешрейт в Смоленщине
-        var smolRate = await connectSmolDB.query("SELECT SUM(RtHashrate) FROM smol_v5.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol_v5.minerstat WHERE Type<>'error') AND User LIKE "+userWallet, { type: connectSmolDB.QueryTypes.SELECT });
+        var smolRate = await connectSmolDB.query("SELECT SUM(RtHashrate) FROM smol2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet, { type: connectSmolDB.QueryTypes.SELECT });
         smolRate = Object.values(smolRate[0]);
         smolRate = parseFloat(smolRate[0], 10);
         // Хешрейт в Олимпийском
-        var olympRate = await connectOlympDB.query("SELECT SUM(RtHashrate) FROM olymp_v2.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp_v2.minerstat WHERE Type<>'error') AND User LIKE "+userWallet, { type: connectOlympDB.QueryTypes.SELECT });
+        var olympRate = await connectOlympDB.query("SELECT SUM(RtHashrate) FROM olymp2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet, { type: connectOlympDB.QueryTypes.SELECT });
         olympRate = Object.values(olympRate[0]);
         olympRate = parseFloat(olympRate[0], 10);
         // Получим количество горячих майнеров (со средней температурой выше 84)
-        var hotMinersSmolCount = await connectSmolDB.query("SELECT COUNT(*) FROM smol_v5.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol_v5.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84;", { type: connectSmolDB.QueryTypes.SELECT});
+        var hotMinersSmolCount = await connectSmolDB.query("SELECT COUNT(*) FROM smol2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84;", { type: connectSmolDB.QueryTypes.SELECT});
         hotMinersSmolCount = Object.values(hotMinersSmolCount[0]);
         hotMinersSmolCount = parseInt(hotMinersSmolCount[0], 10);
 
-        var hotMinersOlympCount = await connectOlympDB.query("SELECT COUNT(*) FROM olymp_v2.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp_v2.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84;", { type: connectOlympDB.QueryTypes.SELECT});
+        var hotMinersOlympCount = await connectOlympDB.query("SELECT COUNT(*) FROM olymp2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84;", { type: connectOlympDB.QueryTypes.SELECT});
         hotMinersOlympCount = Object.values(hotMinersOlympCount[0]);
         hotMinersOlympCount = parseInt(hotMinersOlympCount[0], 10);
         // Получим майнеры с нулевым хешрейтом
-        var uselessSmol = await connectSmolDB.query("SELECT IpAddr FROM smol_v5.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol_v5.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND RtHashrate=0", { type: connectSmolDB.QueryTypes.SELECT});
+        var uselessSmol = await connectSmolDB.query("SELECT IpAddr FROM smol2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND RtHashrate=0", { type: connectSmolDB.QueryTypes.SELECT});
         var resUselessSmol = [];
         for(var i=0; i<uselessSmol.length; i++){
             var ip = Object.values(uselessSmol[i]);
@@ -190,7 +194,7 @@ async function showStats(chatId){
         }
 
         // Получим майнеры с нулевым хешрейтом
-        var uselessOlymp = await connectOlympDB.query("SELECT IpAddr FROM olymp_v2.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp_v2.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND RtHashrate=0", { type: connectOlympDB.QueryTypes.SELECT});
+        var uselessOlymp = await connectOlympDB.query("SELECT IpAddr FROM olymp2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND RtHashrate=0", { type: connectOlympDB.QueryTypes.SELECT});
         var resUselessOlymp = [];
         for(var i=0; i<uselessOlymp.length; i++){
             var ip = Object.values(uselessOlymp[i]);
@@ -198,7 +202,7 @@ async function showStats(chatId){
         }
 
         // Проверим время последнего апдейта в БД
-        var fssLUpdSmol = await connectSmolDB.query("SELECT updatedAt FROM smol_v5.minerstat LIMIT 1");
+        var fssLUpdSmol = await connectSmolDB.query("SELECT updatedAt FROM smol2018.minerstat LIMIT 1");
         fssLUpdSmol = Object.values(fssLUpdSmol[0]);
         fssLUpdSmol = Object.values(fssLUpdSmol[0]);
         fssLUpdSmol = String(fssLUpdSmol[0]);
@@ -243,18 +247,18 @@ async function reboot(chatId){
     // И ЗДЕСЬ МЕНЯЕМ
     switch(chatId){
         case 468477832:
-            userWallet = '\'1NBMQ%\'';
+            userWallet = '\'1C8ed%\'';
             break;
     }
     // Получим список майнеров со средней температурой выше 84 или нулевым хешрейтом
-    var hotQuerySmol = await connectSmolDB.query("SELECT IpAddr FROM smol_v5.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol_v5.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84 OR RtHashrate=0;", { type: connectSmolDB.QueryTypes.SELECT});
+    var hotQuerySmol = await connectSmolDB.query("SELECT IpAddr FROM smol2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84 OR RtHashrate=0;", { type: connectSmolDB.QueryTypes.SELECT});
     var hotMinersSmol = [];
     for(var i=0; i<hotQuerySmol.length; i++){
         var ip = Object.values(hotQuerySmol[i]);
         hotMinersSmol.push(ip[0]);
     }
 
-    var hotQueryOlymp = await connectOlympDB.query("SELECT IpAddr FROM olymp_v2.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp_v2.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84 OR RtHashrate=0;", { type: connectOlympDB.QueryTypes.SELECT});
+    var hotQueryOlymp = await connectOlympDB.query("SELECT IpAddr FROM olymp2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84 OR RtHashrate=0;", { type: connectOlympDB.QueryTypes.SELECT});
     var hotMinersOlymp = [];
     for(var i=0; i<hotQueryOlymp.length; i++){
         var ip = Object.values(hotQueryOlymp[i]);
