@@ -27,7 +27,7 @@ const options = {
 const Sequelize = require('sequelize');
 // WE CONNECT TO !SMOLENSHINA
 var connectSmolDB = new Sequelize('smol2018', 'sa', '`1234qwe', {
-    host: '10.0.0.250',
+    host: '10.0.10.252',
     dialect: 'mysql',
     insecureAuth: true,
     timezone: '+08:00',

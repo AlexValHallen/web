@@ -1,0 +1,8 @@
+DELETE FROM test1.pools WHERE id>0;
+ALTER TABLE test1.pools AUTO_INCREMENT=0;
+
+DELETE FROM test1.chains WHERE id>0;
+ALTER TABLE test1.chains AUTO_INCREMENT=0;
+
+DELETE FROM test1.wallets WHERE id>0;
+ALTER TABLE test1.wallets AUTO_INCREMENT=0;

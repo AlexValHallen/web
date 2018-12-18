@@ -1,0 +1,16 @@
+{
+  "name": "minerconfigurator",
+  "version": "1.0.0",
+  "description": "A program for configuring miners: wallet/network settings ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "VH",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2"
+  }
+}
