@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css?family=Cuprum|Exo+2|Montserrat|Roboto|Oswald|El+Messiri|Arsenal');
+
+@-webkit-keyframes fade-in {   0% { opacity: 0.1; }   100% { opacity: 1; }   }
+@-moz-keyframes    fade-in {   0% { opacity: 0.1; }   100% { opacity: 1; }   }
+@-o-keyframes      fade-in {   0% { opacity: 0.1; }   100% { opacity: 1; }   }
+@keyframes         fade-in {   0% { opacity: 0.1; }   100% { opacity: 1; }   }
+
+html, body{
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    font: 22px 'Oswald';
+    color: #454545;
+    background: url('bitcoin-3319215_960_720.jpg') top left/cover #8888aa;
+}
+
+body{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    letter-spacing: 0.4px;
+}
