@@ -10,7 +10,7 @@ const options = {
             timeout: 20
         }
     },
-    request: {
+    /* request: {
         agentClass: Agent,
         agentOptions: {
             socksHost: "tgproxy.audd.io",
@@ -20,14 +20,26 @@ const options = {
             socksPassword: 'password'
         }
         //proxy:'cfd1400c8002cb3cec1da036f62f7b0e@paparoxy.me:443'
+    } */
+    request: {
+        agentClass: Agent,
+        agentOptions: {
+            socksHost: "132.145.36.9",
+            socksPort: 1080,
+            // If authorization is needed:
+            socksUsername: '468477832',
+            socksPassword: 'TSfl3u6y'
+        }
+        //proxy:'ddf12185293675262e106db157218a0b19@proxy.lyo.su:777' //this is for MTPROTO?
+        //proxy:'http://54.38.142.180:54321'
     }
 }
 const req = require('request-promise');
 
 const Sequelize = require('sequelize');
 // WE CONNECT TO !SMOLENSHINA
-var connectSmolDB = new Sequelize('smol2018', 'sa', '`1234qwe', {
-    host: '10.0.0.250',
+var connectSmolDB = new Sequelize('smol2019_march', 'sa', '`1234qwe', {
+    host: '25.0.10.252',
     dialect: 'mysql',
     insecureAuth: true,
     timezone: '+08:00',
@@ -35,7 +47,7 @@ var connectSmolDB = new Sequelize('smol2018', 'sa', '`1234qwe', {
     logging: false
 });
 // WE CONNECT TO !OLIMPISKIY
-var connectOlympDB = new Sequelize('olymp2018', 'sa', '`1234qwe', {
+var connectOlympDB = new Sequelize('olymp2019_march', 'sa', '`1234qwe', {
     host: '25.13.113.33',
     dialect: 'mysql',
     insecureAuth: true,
@@ -157,36 +169,36 @@ async function showStats(chatId){
 
     switch(chatId){
         case 468477832:
-            userWallet = '\'1C8%\'';
+            userWallet = '\'%1JPCPU%\'';
             break;
     }
     try{
         // Количество машинок в Смоленщине клиента
-        var smolMiners = await connectSmolDB.query("SELECT COUNT(*) FROM smol2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet, { type: connectSmolDB.QueryTypes.SELECT });
+        var smolMiners = await connectSmolDB.query("SELECT COUNT(*) FROM smol2019_march.otherinfo WHERE IpAddr IN (SELECT ipAddr FROM smol2019_march.onlineminers WHERE OnlineStatus<>0) AND User LIKE "+userWallet, { type: connectSmolDB.QueryTypes.SELECT });
         smolMiners = Object.values(smolMiners[0]);
         smolMiners = parseInt(smolMiners[0], 10);
         // Количество машинок в Олимпийском клиента
-        var olympMiners = await connectOlympDB.query("SELECT COUNT(*) FROM olymp2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet, { type: connectOlympDB.QueryTypes.SELECT });
+        var olympMiners = await connectOlympDB.query("SELECT COUNT(*) FROM olymp2019_march.otherinfo WHERE IpAddr IN (SELECT ipAddr FROM olymp2019_march.onlineminers WHERE OnlineStatus<>0) AND User LIKE "+userWallet, { type: connectOlympDB.QueryTypes.SELECT });
         olympMiners = Object.values(olympMiners[0]);
         olympMiners = parseInt(olympMiners[0], 10);
         // Хешрейт в Смоленщине
-        var smolRate = await connectSmolDB.query("SELECT SUM(RtHashrate) FROM smol2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet, { type: connectSmolDB.QueryTypes.SELECT });
+        var smolRate = await connectSmolDB.query("SELECT SUM(RtHashrate) FROM smol2019_march.otherinfo WHERE IpAddr IN (SELECT ipAddr FROM smol2019_march.onlineminers WHERE OnlineStatus<>0) AND User LIKE "+userWallet, { type: connectSmolDB.QueryTypes.SELECT });
         smolRate = Object.values(smolRate[0]);
         smolRate = parseFloat(smolRate[0], 10);
         // Хешрейт в Олимпийском
-        var olympRate = await connectOlympDB.query("SELECT SUM(RtHashrate) FROM olymp2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet, { type: connectOlympDB.QueryTypes.SELECT });
+        var olympRate = await connectOlympDB.query("SELECT SUM(RtHashrate) FROM olymp2019_march.otherinfo WHERE IpAddr IN (SELECT ipAddr FROM olymp2019_march.onlineminers WHERE OnlineStatus<>0) AND User LIKE "+userWallet, { type: connectOlympDB.QueryTypes.SELECT });
         olympRate = Object.values(olympRate[0]);
         olympRate = parseFloat(olympRate[0], 10);
         // Получим количество горячих майнеров (со средней температурой выше 84)
-        var hotMinersSmolCount = await connectSmolDB.query("SELECT COUNT(*) FROM smol2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84;", { type: connectSmolDB.QueryTypes.SELECT});
+        var hotMinersSmolCount = await connectSmolDB.query("SELECT COUNT(*) FROM smol2019_march.otherinfo WHERE IpAddr IN (SELECT ipAddr FROM smol2019_march.onlineminers WHERE OnlineStatus<>0) AND User LIKE "+userWallet+" AND AvgTemperature>84;", { type: connectSmolDB.QueryTypes.SELECT});
         hotMinersSmolCount = Object.values(hotMinersSmolCount[0]);
         hotMinersSmolCount = parseInt(hotMinersSmolCount[0], 10);
 
-        var hotMinersOlympCount = await connectOlympDB.query("SELECT COUNT(*) FROM olymp2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84;", { type: connectOlympDB.QueryTypes.SELECT});
+        var hotMinersOlympCount = await connectOlympDB.query("SELECT COUNT(*) FROM olymp2019_march.otherinfo WHERE IpAddr IN (SELECT ipAddr FROM olymp2019_march.onlineminers WHERE OnlineStatus<>0) AND User LIKE "+userWallet+" AND AvgTemperature>84;", { type: connectOlympDB.QueryTypes.SELECT});
         hotMinersOlympCount = Object.values(hotMinersOlympCount[0]);
         hotMinersOlympCount = parseInt(hotMinersOlympCount[0], 10);
         // Получим майнеры с нулевым хешрейтом
-        var uselessSmol = await connectSmolDB.query("SELECT IpAddr FROM smol2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND RtHashrate=0", { type: connectSmolDB.QueryTypes.SELECT});
+        var uselessSmol = await connectSmolDB.query("SELECT IpAddr FROM smol2019_march.otherinfo WHERE IpAddr IN (SELECT ipAddr FROM smol2019_march.onlineminers WHERE OnlineStatus<>0) AND User LIKE "+userWallet+" AND RtHashrate=0", { type: connectSmolDB.QueryTypes.SELECT});
         var resUselessSmol = [];
         for(var i=0; i<uselessSmol.length; i++){
             var ip = Object.values(uselessSmol[i]);
@@ -194,7 +206,7 @@ async function showStats(chatId){
         }
 
         // Получим майнеры с нулевым хешрейтом
-        var uselessOlymp = await connectOlympDB.query("SELECT IpAddr FROM olymp2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND RtHashrate=0", { type: connectOlympDB.QueryTypes.SELECT});
+        var uselessOlymp = await connectOlympDB.query("SELECT IpAddr FROM olymp2019_march.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp2019_march.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND RtHashrate=0", { type: connectOlympDB.QueryTypes.SELECT});
         var resUselessOlymp = [];
         for(var i=0; i<uselessOlymp.length; i++){
             var ip = Object.values(uselessOlymp[i]);
@@ -202,7 +214,7 @@ async function showStats(chatId){
         }
 
         // Проверим время последнего апдейта в БД
-        var fssLUpdSmol = await connectSmolDB.query("SELECT updatedAt FROM smol2018.minerstat LIMIT 1");
+        var fssLUpdSmol = await connectSmolDB.query("SELECT updatedAt FROM smol2019_march.minerstat LIMIT 1");
         fssLUpdSmol = Object.values(fssLUpdSmol[0]);
         fssLUpdSmol = Object.values(fssLUpdSmol[0]);
         fssLUpdSmol = String(fssLUpdSmol[0]);
@@ -251,14 +263,14 @@ async function reboot(chatId){
             break;
     }
     // Получим список майнеров со средней температурой выше 84 или нулевым хешрейтом
-    var hotQuerySmol = await connectSmolDB.query("SELECT IpAddr FROM smol2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84 OR RtHashrate=0;", { type: connectSmolDB.QueryTypes.SELECT});
+    var hotQuerySmol = await connectSmolDB.query("SELECT IpAddr FROM smol2019_march.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM smol2019_march.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84 OR RtHashrate=0;", { type: connectSmolDB.QueryTypes.SELECT});
     var hotMinersSmol = [];
     for(var i=0; i<hotQuerySmol.length; i++){
         var ip = Object.values(hotQuerySmol[i]);
         hotMinersSmol.push(ip[0]);
     }
 
-    var hotQueryOlymp = await connectOlympDB.query("SELECT IpAddr FROM olymp2018.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp2018.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84 OR RtHashrate=0;", { type: connectOlympDB.QueryTypes.SELECT});
+    var hotQueryOlymp = await connectOlympDB.query("SELECT IpAddr FROM olymp2019_march.otherinfo WHERE IpAddr IN (SELECT IpAddr FROM olymp2019_march.minerstat WHERE Type<>'error') AND User LIKE "+userWallet+" AND AvgTemperature>84 OR RtHashrate=0;", { type: connectOlympDB.QueryTypes.SELECT});
     var hotMinersOlymp = [];
     for(var i=0; i<hotQueryOlymp.length; i++){
         var ip = Object.values(hotQueryOlymp[i]);
