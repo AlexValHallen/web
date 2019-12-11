@@ -11,23 +11,27 @@ const options = {
         }
     },
     // ЗДЕСЬ УКАЗЫВАЮТСЯ НАСТРОЙКИ ПРОКСИ ДЛЯ ДОСТУПА К СЕРВЕРАМ TELEGRAM
+    /* request: {
+        
+        //proxy:'ddf12185293675262e106db157218a0b19@proxy.lyo.su:777' //this is for MTPROTO?
+        proxy:'http://116.62.204.186:3128'
+    } */
     request: {
         agentClass: Agent,
         agentOptions: {
-            socksHost: "111.223.75.178",
-            socksPort: 8888//,
+            socksHost: "127.0.0.1",
+            socksPort: 9150,
             // If authorization is needed:
-            //socksUsername: '468477832',
-            //socksPassword: 'TSfl3u6y'
+            //socksUsername: 'user',
+            //socksPassword: 'password'
         }
-        //proxy:'ddf12185293675262e106db157218a0b19@proxy.lyo.su:777' //this is for MTPROTO?
-        //proxy:'http://54.38.142.180:54321'
+        //proxy:'cfd1400c8002cb3cec1da036f62f7b0e@paparoxy.me:443'
     }
 }
-// !! PASTE THE NAMES OF DB HERE !! 
+// !! PASTE THE NAMES OF DBs HERE !! 
 // !! ВСТАВЬТЕ В ПЕРЕМЕННЫЕ НАЗВАНИЯ РЕЛЕВАНТНЫХ БАЗ ДАННЫХ !!
-var smolDB = 'smol2019_march';
-var olympDB = 'olymp2019_march';
+var smolDB = 'smol2019_september';
+var olympDB = 'olymp2019_september';
 
 const Sequelize = require('sequelize');
 // WE CONNECT TO !SMOLENSHINA
@@ -48,6 +52,15 @@ var connectOlympDB = new Sequelize(olympDB, 'sa', '`1234qwe', {
     define: { freezeTableName: true },
     logging: false
 });
+// WE CONNECT TO !MELNICHNAYA_PAD
+var connectMelnDB = new Sequelize('LyaMEv6kJL', 'LyaMEv6kJL', 'musQiYd7DI', {
+    host: 'remotemysql.com',
+    dialect: 'mysql',
+    insecureAuth: true,
+    timezone: '+08:00',
+    define: { freezeTableName: true },
+    logging: false
+});
 const Op = Sequelize.Op;
 
 // NOW THERE'S A LIST OF ADMINS
@@ -56,6 +69,7 @@ auth_users = [
     468477832, // dats my ass
     158076861, // kolyan pc
     507622032, // moar kolyan
+    453184045, // slava
     // !INSERT NEW USERS HERE!
 
     // HERE!
@@ -65,8 +79,8 @@ auth_users = [
 const KEYBOARD = {
     reply_markup: JSON.stringify({
         keyboard: [
-            ['Статистика Смоленщина / Stats Smol', 'Статистика Олимпийский / Stats Olymp'],
-            ['Помощь / Help', 'Ваш ID / Your ID']
+            ['Stats Smol', 'Stats Olymp', 'Stats Meln_pad'],
+            ['Help', 'Your ID']
         ]
     })
 };
@@ -74,7 +88,7 @@ const KEYBOARD = {
 const newbieKbrd = {
     reply_markup: JSON.stringify({
         keyboard: [
-            ['Ваш ID / Your ID', 'Помощь / Help']
+            ['Your ID', 'Help']
         ]
     })
 };
@@ -113,10 +127,10 @@ bot.onText(/\/myid/, (msg, match) => {
 
 // NOW WE HEAR YOUR COMMANDS
 bot.onText(/(.+)/, (msg, match) => {
-    if (match[0] == 'Ваш ID / Your ID') {
+    if (match[0] == 'Your ID') {
         bot.sendMessage(msg.chat.id, 'ID: ' + msg.from.id, KEYBOARD);    
     }
-    else if(match[0] == 'Помощь / Help'){
+    else if(match[0] == 'Help'){
         if (authenticate_users(msg.from.id)) {
             bot.sendMessage(msg.chat.id, "Вы можете нажать на любую кнопку, либо вручную ввести нужную вам команду. Наберите символ слэш, чтобы лицезреть список комманд", KEYBOARD);
         }
@@ -126,11 +140,14 @@ bot.onText(/(.+)/, (msg, match) => {
     }  
     else if (authenticate_users(msg.from.id)) {
         bot.sendMessage(msg.chat.id,KEYBOARD); 
-        if(match[0] == 'Статистика Смоленщина / Stats Smol'){
+        if(match[0] == 'Stats Smol'){
             showStatsSmol(msg.chat.id);
         }
-        else if(match[0] == 'Статистика Олимпийский / Stats Olymp'){
+        else if(match[0] == 'Stats Olymp'){
             showStatsOlymp(msg.chat.id);
+        }
+        else if(match[0] == 'Stats Meln_pad'){
+            showStatsMeln(msg.chat.id);
         }
     } 
     else {
@@ -146,27 +163,27 @@ function authenticate_users(id) {
     }
     return false
 }
-
+// Функция для вывода статистики в Смоленщине 
 async function showStatsSmol(chatId){
     console.log('Someone is requesting for Stats in Smol: '+chatId);
     try{
         // Количество машинок в Смоленщине
-        var fssSmolMiners = await connectSmolDB.query("SELECT COUNT(*) FROM " + smolDB + ".onlineminers WHERE OnlineStatus<>0;", { type: connectSmolDB.QueryTypes.SELECT });
+        var fssSmolMiners = await connectSmolDB.query("SELECT COUNT(*) FROM " + smolDB + ".OnlineMiners WHERE OnlineStatus<>0;", { type: connectSmolDB.QueryTypes.SELECT });
         fssSmolMiners = Object.values(fssSmolMiners[0]);
         fssSmolMiners = parseInt(fssSmolMiners[0], 10);
 
         // Количество живых плат в Смоленщине
-        var fssSmolChains = await connectSmolDB.query("SELECT SUM(AliveChains) FROM " + smolDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".onlineminers WHERE OnlineStatus<>0);", { type: connectSmolDB.QueryTypes.SELECT });
+        var fssSmolChains = await connectSmolDB.query("SELECT SUM(AliveChains) FROM " + smolDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".OnlineMiners WHERE OnlineStatus<>0);", { type: connectSmolDB.QueryTypes.SELECT });
         fssSmolChains = Object.values(fssSmolChains[0]);
         fssSmolChains = parseInt(fssSmolChains, 10);
 
         // Хешрейт в Смоленщине
-        var fssSmolRate = await connectSmolDB.query("SELECT SUM(RtHashrate) FROM " + smolDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".onlineminers WHERE OnlineStatus<>0);", { type: connectSmolDB.QueryTypes.SELECT });
+        var fssSmolRate = await connectSmolDB.query("SELECT SUM(RtHashrate) FROM " + smolDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".OnlineMiners WHERE OnlineStatus<>0);", { type: connectSmolDB.QueryTypes.SELECT });
         fssSmolRate = Object.values(fssSmolRate[0]);
         fssSmolRate = parseFloat(fssSmolRate[0], 10);
 
         // Прочекаем немайнящие майнеры
-        var fssUselessSmol = await connectSmolDB.query("SELECT IpAddr FROM " + smolDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".onlineminers WHERE OnlineStatus<>0) AND RtHashrate=0;", { type: connectSmolDB.QueryTypes.SELECT});
+        var fssUselessSmol = await connectSmolDB.query("SELECT IpAddr FROM " + smolDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".OnlineMiners WHERE OnlineStatus<>0) AND RtHashrate=0;", { type: connectSmolDB.QueryTypes.SELECT});
         var resUselessSmol = [];
         for(var i=0; i<fssUselessSmol.length; i++){
             var ip = Object.values(fssUselessSmol[i]);
@@ -174,16 +191,16 @@ async function showStatsSmol(chatId){
         }
 
         // Прочекаем суммарную температуру по майнерам (>0)
-        var fssSumTemper = await connectSmolDB.query("SELECT SUM(AvgTemperature) FROM " + smolDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".onlineminers WHERE OnlineStatus<>0) AND AvgTemperature>0;", { type: connectSmolDB.QueryTypes.SELECT });
+        var fssSumTemper = await connectSmolDB.query("SELECT SUM(AvgTemperature) FROM " + smolDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0;", { type: connectSmolDB.QueryTypes.SELECT });
         fssSumTemper = Object.values(fssSumTemper[0]);
         fssSumTemper = parseFloat(fssSumTemper[0], 10);
-        var fssSumTempCount = await connectSmolDB.query("SELECT COUNT(*) FROM " + smolDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".onlineminers WHERE OnlineStatus<>0) AND AvgTemperature>0;", { type: connectSmolDB.QueryTypes.SELECT });
+        var fssSumTempCount = await connectSmolDB.query("SELECT COUNT(*) FROM " + smolDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0;", { type: connectSmolDB.QueryTypes.SELECT });
         fssSumTempCount = Object.values(fssSumTempCount[0]);
         fssSumTempCount = parseFloat(fssSumTempCount[0], 10);
         fssSumTemper=fssSumTemper/fssSumTempCount;
 
         // Проверим время последнего апдейта в БД
-        var fssLUpdSmol = await connectSmolDB.query("SELECT updatedAt FROM " + smolDB + ".minerstat LIMIT 1");
+        var fssLUpdSmol = await connectSmolDB.query("SELECT updatedAt FROM " + smolDB + ".MinerStat LIMIT 1");
         fssLUpdSmol = Object.values(fssLUpdSmol[0]);
         fssLUpdSmol = Object.values(fssLUpdSmol[0]);
         fssLUpdSmol = String(fssLUpdSmol[0]);
@@ -200,27 +217,27 @@ async function showStatsSmol(chatId){
         }
     }
 }
-
+// Функция для вывода статистики в Олимпийском (здесь есть осн ферма, контейнер и миниконтейнер)
 async function showStatsOlymp(chatId){
     console.log('Someone is requesting for Stats in Olymp: '+chatId);
     try{
         // Количество машинок в Олимпийском
-        var fssOlympMiners = await connectOlympDB.query("SELECT COUNT(*) FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0;", { type: connectOlympDB.QueryTypes.SELECT});
+        var fssOlympMiners = await connectOlympDB.query("SELECT COUNT(*) FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0;", { type: connectOlympDB.QueryTypes.SELECT});
         fssOlympMiners = Object.values(fssOlympMiners[0]);
         fssOlympMiners = parseInt(fssOlympMiners[0], 10);
 
         // Количество живых плат в Олимпийском
-        var fssOlympChains = await connectOlympDB.query("SELECT SUM(AliveChains) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0);", { type: connectOlympDB.QueryTypes.SELECT});
+        var fssOlympChains = await connectOlympDB.query("SELECT SUM(AliveChains) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0);", { type: connectOlympDB.QueryTypes.SELECT});
         fssOlympChains = Object.values(fssOlympChains[0]);
         fssOlympChains = parseInt(fssOlympChains, 10);
 
         // Хешрейт в Олимпийском
-        var fssOlympRate = await connectOlympDB.query("SELECT SUM(RtHashrate) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0);", { type: connectOlympDB.QueryTypes.SELECT});
+        var fssOlympRate = await connectOlympDB.query("SELECT SUM(RtHashrate) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0);", { type: connectOlympDB.QueryTypes.SELECT});
         fssOlympRate = Object.values(fssOlympRate[0]);
         fssOlympRate = parseFloat(fssOlympRate[0], 10);
 
         // Прочекаем немайнящие майнеры
-        var fssUselessOlymp = await connectOlympDB.query("SELECT IpAddr FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0) AND RtHashrate=0;", { type: connectOlympDB.QueryTypes.SELECT});
+        var fssUselessOlymp = await connectOlympDB.query("SELECT IpAddr FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0) AND RtHashrate=0;", { type: connectOlympDB.QueryTypes.SELECT});
         var resUselessOlymp = [];
         for(var i=0; i<fssUselessOlymp.length; i++){
             var ip = Object.values(fssUselessOlymp[i]);
@@ -228,34 +245,34 @@ async function showStatsOlymp(chatId){
         }
         
         // Прочекаем суммарную температуру по майнерам в контейнере (>0)
-        var fssSumTemperCont = await connectOlympDB.query("SELECT SUM(AvgTemperature) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%OL-CONT%';", { type: connectOlympDB.QueryTypes.SELECT });
+        var fssSumTemperCont = await connectOlympDB.query("SELECT SUM(AvgTemperature) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%cont%' AND User NOT LIKE '%mini%';", { type: connectOlympDB.QueryTypes.SELECT });
         fssSumTemperCont = Object.values(fssSumTemperCont[0]);
         fssSumTemperCont = parseFloat(fssSumTemperCont[0], 10);
-        var fssTempCountCont = await connectOlympDB.query("SELECT COUNT(*) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%OL-CONT%';", { type: connectOlympDB.QueryTypes.SELECT });
+        var fssTempCountCont = await connectOlympDB.query("SELECT COUNT(*) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%cont%' AND User NOT LIKE '%mini%';", { type: connectOlympDB.QueryTypes.SELECT });
         fssTempCountCont = Object.values(fssTempCountCont[0]);
         fssTempCountCont = parseFloat(fssTempCountCont[0], 10);
         fssSumTemperCont=fssSumTemperCont/fssTempCountCont;
 
         // Прочекаем суммарную температуру по майнерам в мини-контейнере/будочке (>0)
-        var fssSumTemperMCont = await connectOlympDB.query("SELECT SUM(AvgTemperature) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%OLmini%';", { type: connectOlympDB.QueryTypes.SELECT });
+        var fssSumTemperMCont = await connectOlympDB.query("SELECT SUM(AvgTemperature) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%mini%';", { type: connectOlympDB.QueryTypes.SELECT });
         fssSumTemperMCont = Object.values(fssSumTemperMCont[0]);
         fssSumTemperMCont = parseFloat(fssSumTemperMCont[0], 10);
-        var fssTempCountMCont = await connectOlympDB.query("SELECT COUNT(*) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%OLmini%';", { type: connectOlympDB.QueryTypes.SELECT });
+        var fssTempCountMCont = await connectOlympDB.query("SELECT COUNT(*) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%mini%';", { type: connectOlympDB.QueryTypes.SELECT });
         fssTempCountMCont = Object.values(fssTempCountMCont[0]);
         fssTempCountMCont = parseFloat(fssTempCountMCont[0], 10);
         fssSumTemperMCont=fssSumTemperMCont/fssTempCountMCont;
 
         // Прочекаем суммарную температуру по майнерам в основной ферме (>0)
-        var fssSumTemper = await connectOlympDB.query("SELECT SUM(AvgTemperature) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User NOT LIKE '%CONT%';", { type: connectOlympDB.QueryTypes.SELECT });
+        var fssSumTemper = await connectOlympDB.query("SELECT SUM(AvgTemperature) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%OM%';", { type: connectOlympDB.QueryTypes.SELECT });
         fssSumTemper = Object.values(fssSumTemper[0]);
         fssSumTemper = parseFloat(fssSumTemper[0], 10);
-        var fssTempCount= await connectOlympDB.query("SELECT COUNT(*) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User NOT LIKE '%CONT%';", { type: connectOlympDB.QueryTypes.SELECT });
+        var fssTempCount= await connectOlympDB.query("SELECT COUNT(*) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%OM%';", { type: connectOlympDB.QueryTypes.SELECT });
         fssTempCount = Object.values(fssTempCount[0]);
         fssTempCount = parseFloat(fssTempCount[0], 10);
         fssSumTemper=fssSumTemper/fssTempCount;
 
         // Проверим время последнего апдейта в БД
-        var fssLUpdOlymp = await connectOlympDB.query("SELECT updatedAt FROM " + olympDB + ".onlineminers LIMIT 1");
+        var fssLUpdOlymp = await connectOlympDB.query("SELECT updatedAt FROM " + olympDB + ".OnlineMiners LIMIT 1");
         fssLUpdOlymp = Object.values(fssLUpdOlymp[0]);
         fssLUpdOlymp = Object.values(fssLUpdOlymp[0]);
         fssLUpdOlymp = String(fssLUpdOlymp[0]);
@@ -271,6 +288,62 @@ async function showStatsOlymp(chatId){
         }
     }
 }
+
+// Функция для вывода статистики в Мельничной Пади
+async function showStatsMeln(chatId){
+    console.log('Someone is requesting for Stats in Meln: '+chatId);
+    try{
+        // Количество машинок 
+        var fssMelnMiners = await connectMelnDB.query("SELECT COUNT(*) FROM OnlineMiners WHERE OnlineStatus<>0;", { type: connectMelnDB.QueryTypes.SELECT });
+        fssMelnMiners = Object.values(fssMelnMiners[0]);
+        fssMelnMiners = parseInt(fssMelnMiners[0], 10);
+
+        // Количество живых плат
+        var fssMelnChains = await connectMelnDB.query("SELECT SUM(AliveChains) FROM OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM OnlineMiners WHERE OnlineStatus<>0);", { type: connectMelnDB.QueryTypes.SELECT });
+        fssMelnChains = Object.values(fssMelnChains[0]);
+        fssMelnChains = parseInt(fssMelnChains, 10);
+
+        // Хешрейт 
+        var fssMelnRate = await connectMelnDB.query("SELECT SUM(RtHashrate) FROM OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM OnlineMiners WHERE OnlineStatus<>0);", { type: connectMelnDB.QueryTypes.SELECT });
+        fssMelnRate = Object.values(fssMelnRate[0]);
+        fssMelnRate = parseFloat(fssMelnRate[0], 10);
+
+        // Прочекаем немайнящие майнеры
+        var fssUselessMeln = await connectMelnDB.query("SELECT IpAddr FROM OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM OnlineMiners WHERE OnlineStatus<>0) AND RtHashrate=0;", { type: connectMelnDB.QueryTypes.SELECT});
+        var resUselessMeln = [];
+        for(var i=0; i<fssUselessMeln.length; i++){
+            var ip = Object.values(fssUselessMeln[i]);
+            resUselessMeln.push(ip[0]);
+        }
+
+        // Прочекаем суммарную температуру по майнерам (>0)
+        var fssSumTemper = await connectMelnDB.query("SELECT SUM(AvgTemperature) FROM OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0;", { type: connectMelnDB.QueryTypes.SELECT });
+        fssSumTemper = Object.values(fssSumTemper[0]);
+        fssSumTemper = parseFloat(fssSumTemper[0], 10);
+        var fssSumTempCount = await connectMelnDB.query("SELECT COUNT(*) FROM OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0;", { type: connectMelnDB.QueryTypes.SELECT });
+        fssSumTempCount = Object.values(fssSumTempCount[0]);
+        fssSumTempCount = parseFloat(fssSumTempCount[0], 10);
+        fssSumTemper=fssSumTemper/fssSumTempCount;
+
+        // Проверим время последнего апдейта в БД
+        var fssLUpdMeln = await connectMelnDB.query("SELECT updatedAt FROM MinerStat LIMIT 1");
+        fssLUpdMeln = Object.values(fssLUpdMeln[0]);
+        fssLUpdMeln = Object.values(fssLUpdMeln[0]);
+        fssLUpdMeln = String(fssLUpdMeln[0]);
+       
+        bot.sendMessage(chatId, "В Мельничной: " + "\nМайнеров в сети: " + fssMelnMiners + "\nПлат в сети: " + fssMelnChains + "\nRT-HashRate: " + fssMelnRate.toLocaleString('ru') + " GH/S" +"\nМайнеров с нулевым Rt-HRate: "+resUselessMeln.length+"\n"+resUselessMeln+"\nСредняя температура по ферме: "+fssSumTemper+" °С"+ "\nДата последнего обновления:\n" + fssLUpdMeln);
+        
+    }
+    catch(error){
+        if(error=="SequelizeConnectionError: connect ETIMEDOUT"){
+            bot.sendMessage(chatId, "Ошибка: нет подключения к БД\n"+error);
+        }
+        else{
+            bot.sendMessage(chatId, "ERROR!\n"+error);
+        }
+    }
+}
+
     // Requesting all for one time when the app starts
     setTimeout(alert, 10000);
     // and then we repeat
@@ -278,17 +351,19 @@ async function showStatsOlymp(chatId){
     //forceShowStats();
     setInterval(forceShowStats, 7200000);
 
-    var HRateOlympOld, HRateSmolOld;
+    var HRateOlympOld, HRateSmolOld, HRateMelnOld;
     var resOlymp0 = []; 
     var resSmol0 = [];
+    var resMeln0 = [];
 
 async function alert(){
     // Текущее время вызова в миллисекундах
     var currDate = getCurrentDate();
     
+    // Олимпийский
     try{
         // Получим список этих машинок и выведем вышедших из сети
-        var minerListOlymp = await connectOlympDB.query("SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0", { type: connectOlympDB.QueryTypes.SELECT});
+        var minerListOlymp = await connectOlympDB.query("SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0", { type: connectOlympDB.QueryTypes.SELECT});
         var resOlymp = [];
         var absentOlymp = [];
         for(var i=0; i<minerListOlymp.length; i++){
@@ -315,7 +390,7 @@ async function alert(){
         resOlymp0 = resOlymp;
 
         // Хешрейт в Олимпийском
-        var HRateOlymp = await connectOlympDB.query("SELECT SUM(RtHashrate) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0);", { type: connectOlympDB.QueryTypes.SELECT});
+        var HRateOlymp = await connectOlympDB.query("SELECT SUM(RtHashrate) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0);", { type: connectOlympDB.QueryTypes.SELECT});
         HRateOlymp = Object.values(HRateOlymp[0]);
         HRateOlymp = parseFloat(HRateOlymp[0], 10);
         var decreaseOlymp = HRateOlympOld-HRateOlymp;
@@ -328,7 +403,7 @@ async function alert(){
         HRateOlympOld = HRateOlymp;
         
         // Проверим время последнего апдейта в БД (тоже в миллисекундах)
-        var lastUpdOlymp = await connectOlympDB.query("SELECT updatedAt FROM " + olympDB + ".onlineminers LIMIT 1");
+        var lastUpdOlymp = await connectOlympDB.query("SELECT updatedAt FROM " + olympDB + ".OnlineMiners LIMIT 1");
         lastUpdOlymp = Object.values(lastUpdOlymp[0]);
         lastUpdOlymp = Object.values(lastUpdOlymp[0]);
         lastUpdOlymp = String(lastUpdOlymp[0]);
@@ -354,9 +429,11 @@ async function alert(){
             }
         }
     }
+
+    // Смоленщина
     try{
         // Получим список этих машинок и выведем вышедших из сети
-        var minerListSmol = await connectSmolDB.query("SELECT IpAddr FROM " + smolDB + ".onlineminers WHERE OnlineStatus<>0", { type: connectSmolDB.QueryTypes.SELECT});
+        var minerListSmol = await connectSmolDB.query("SELECT IpAddr FROM " + smolDB + ".OnlineMiners WHERE OnlineStatus<>0", { type: connectSmolDB.QueryTypes.SELECT});
         var resSmol = [];
         var absentSmol = [];
         for(var i=0; i<minerListSmol.length; i++){
@@ -384,7 +461,7 @@ async function alert(){
         resSmol0 = resSmol;
 
         // Хешрейт в Смоленщине
-        var HRateSmol = await connectSmolDB.query("SELECT SUM(RtHashrate) FROM " + smolDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".onlineminers WHERE OnlineStatus<>0);", { type: connectSmolDB.QueryTypes.SELECT });
+        var HRateSmol = await connectSmolDB.query("SELECT SUM(RtHashrate) FROM " + smolDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".OnlineMiners WHERE OnlineStatus<>0);", { type: connectSmolDB.QueryTypes.SELECT });
         HRateSmol = Object.values(HRateSmol[0]);
         HRateSmol = parseFloat(HRateSmol[0], 10);
         var decreaseSmol = HRateSmolOld-HRateSmol;
@@ -397,7 +474,7 @@ async function alert(){
         HRateSmolOld = HRateSmol;
         
         // Проверим время последнего апдейта в БД (тоже в миллисекундах)
-        var lastUpdSmol = await connectSmolDB.query("SELECT updatedAt FROM " + smolDB + ".onlineminers LIMIT 1");
+        var lastUpdSmol = await connectSmolDB.query("SELECT updatedAt FROM " + smolDB + ".OnlineMiners LIMIT 1");
         lastUpdSmol = Object.values(lastUpdSmol[0]);
         lastUpdSmol = Object.values(lastUpdSmol[0]);
         lastUpdSmol = String(lastUpdSmol[0]);
@@ -422,27 +499,98 @@ async function alert(){
             }
         }
     }
+
+    // Мельничная
+    try{
+        // Получим список этих машинок и выведем вышедших из сети
+        var minerListMeln = await connectMelnDB.query("SELECT IpAddr FROM OnlineMiners WHERE OnlineStatus<>0", { type: connectMelnDB.QueryTypes.SELECT});
+        var resMeln = [];
+        var absentMeln = [];
+        for(var i=0; i<minerListMeln.length; i++){
+            var ip = Object.values(minerListMeln[i]);
+            resMeln.push(ip[0]);
+        }
+        for(var j=0; j<resMeln0.length; j++){
+            if(resMeln.indexOf(resMeln0[j])==-1){
+                absentMeln.push(resMeln0[j]);
+            }
+        }
+        // Если вышел из сети хотя б 1, пишем в лог
+        if(absentMeln.length>=1){
+            fs.appendFileSync(__dirname+"/info.txt", "\r\n"+getCurrentDateString()+' Мельничная: из сети вышло ' + (absentMeln.length)+" майнеров:"+ absentMeln+"\r\n");
+            for(var i=1; i<auth_users.length-1; i++){
+                bot.sendMessage(auth_users[i], "\r\n"+getCurrentDateString()+' Мельничная: из сети вышло ' + (absentMeln.length)+" майнеров:"+ absentMeln+"\r\n");
+            }
+        } 
+         // Если вышел из сети хотя б 3, сигналим
+        if(absentMeln.length>=3){
+            for(authUser in auth_users){
+                bot.sendMessage(auth_users[authUser], 'Мельничная: из сети вышло ' + (absentMeln.length) + ' майнеров:\n'+ absentMeln);
+            }
+        }    
+       resMeln0 = resMeln;
+
+        // Хешрейт
+        var HRateMeln = await connectMelnDB.query("SELECT SUM(RtHashrate) FROM OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM OnlineMiners WHERE OnlineStatus<>0);", { type: connectMelnDB.QueryTypes.SELECT });
+        HRateMeln = Object.values(HRateMeln[0]);
+        HRateMeln = parseFloat(HRateMeln[0], 10);
+        var decreaseMeln = HRateMelnOld-HRateMeln;
+        if((decreaseMeln/HRateMelnOld)*100>=5){
+            for(authUser in auth_users){
+                bot.sendMessage(auth_users[authUser], 'WARNING! Хешрейт упал на ' + decreaseMeln.toLocaleString('ru') + ' GH/S в Мельничной');
+            }
+            fs.appendFileSync(__dirname+"/info.txt", "\r\n"+getCurrentDateString()+" WARNING! Хешрейт упал на " + (decreaseMeln).toLocaleString('ru') + " GH/S в Мельничной"+"\r\n");
+        }
+        HRateMelnOld = HRateMeln;
+        
+        // Проверим время последнего апдейта в БД (тоже в миллисекундах)
+        var lastUpdMeln = await connectMelnDB.query("SELECT updatedAt FROM OnlineMiners LIMIT 1");
+        lastUpdMeln = Object.values(lastUpdMeln[0]);
+        lastUpdMeln = Object.values(lastUpdMeln[0]);
+        lastUpdMeln = String(lastUpdMeln[0]);
+        lastUpdMeln = Date.parse(lastUpdMeln);
+        
+        // Если с последнего апдейта прошло полдня (12 часов), то сигналим
+        if(currDate-lastUpdMeln>=43200000){
+            for(authUser in auth_users){
+                bot.sendMessage(auth_users[authUser], 'WARNING! С последнего обновления в БД Мельничной прошло больше полудня. Проверьте БД и опросчик');
+            }
+        }
+    }
+    catch(er){
+        if(er=="SequelizeConnectionError: connect ETIMEDOUT"){
+            for(authUser in auth_users){
+                bot.sendMessage(auth_users[authUser], 'WARNING! Нет подключения к БД в Мельничной Пади. Проверьте БД и опросник\n'+er);
+            }
+        }
+        else{
+            for(authUser in auth_users){
+                bot.sendMessage(auth_users[authUser], 'Error Meln:\n'+er);
+            }
+        }
+    }
 }
 
 async function forceShowStats(){
+    // Olymp
     try{
         // Количество машинок в Олимпийском
-        var fssOlympMiners = await connectOlympDB.query("SELECT COUNT(*) FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0;", { type: connectOlympDB.QueryTypes.SELECT});
+        var fssOlympMiners = await connectOlympDB.query("SELECT COUNT(*) FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0;", { type: connectOlympDB.QueryTypes.SELECT});
         fssOlympMiners = Object.values(fssOlympMiners[0]);
         fssOlympMiners = parseInt(fssOlympMiners[0], 10);
 
         // Количество живых плат в Олимпийском
-        var fssOlympChains = await connectOlympDB.query("SELECT SUM(AliveChains) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0);", { type: connectOlympDB.QueryTypes.SELECT});
+        var fssOlympChains = await connectOlympDB.query("SELECT SUM(AliveChains) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0);", { type: connectOlympDB.QueryTypes.SELECT});
         fssOlympChains = Object.values(fssOlympChains[0]);
         fssOlympChains = parseInt(fssOlympChains, 10);
 
         // Хешрейт в Олимпийском
-        var fssOlympRate = await connectOlympDB.query("SELECT SUM(RtHashrate) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0);", { type: connectOlympDB.QueryTypes.SELECT});
+        var fssOlympRate = await connectOlympDB.query("SELECT SUM(RtHashrate) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0);", { type: connectOlympDB.QueryTypes.SELECT});
         fssOlympRate = Object.values(fssOlympRate[0]);
         fssOlympRate = parseFloat(fssOlympRate[0], 10);
 
         //Выведем машинки с нулевым хешрейтом
-        var fssUselessOlymp = await connectOlympDB.query("SELECT IpAddr FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0) AND RtHashrate=0;", { type: connectOlympDB.QueryTypes.SELECT});
+        var fssUselessOlymp = await connectOlympDB.query("SELECT IpAddr FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0) AND RtHashrate=0;", { type: connectOlympDB.QueryTypes.SELECT});
         var resUselessOlymp = [];
         for(var i=0; i<fssUselessOlymp.length; i++){
             var ip = Object.values(fssUselessOlymp[i]);
@@ -450,34 +598,34 @@ async function forceShowStats(){
         }
 
         // Прочекаем суммарную температуру по майнерам в контейнере (>0)
-        var fssSumTemperCont = await connectOlympDB.query("SELECT SUM(AvgTemperature) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%OL-CONT%';", { type: connectOlympDB.QueryTypes.SELECT });
+        var fssSumTemperCont = await connectOlympDB.query("SELECT SUM(AvgTemperature) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%cont%' AND User NOT LIKE '%mini%';", { type: connectOlympDB.QueryTypes.SELECT });
         fssSumTemperCont = Object.values(fssSumTemperCont[0]);
         fssSumTemperCont = parseFloat(fssSumTemperCont[0], 10);
-        var fssTempCountCont = await connectOlympDB.query("SELECT COUNT(*) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%OL-CONT%';", { type: connectOlympDB.QueryTypes.SELECT });
+        var fssTempCountCont = await connectOlympDB.query("SELECT COUNT(*) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%cont%' AND User NOT LIKE '%mini%';", { type: connectOlympDB.QueryTypes.SELECT });
         fssTempCountCont = Object.values(fssTempCountCont[0]);
         fssTempCountCont = parseFloat(fssTempCountCont[0], 10);
         fssSumTemperCont=fssSumTemperCont/fssTempCountCont;
 
         // Прочекаем суммарную температуру по майнерам в мини-контейнере/будочке (>0)
-        var fssSumTemperMCont = await connectOlympDB.query("SELECT SUM(AvgTemperature) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%OLmini%';", { type: connectOlympDB.QueryTypes.SELECT });
+        var fssSumTemperMCont = await connectOlympDB.query("SELECT SUM(AvgTemperature) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%mini%';", { type: connectOlympDB.QueryTypes.SELECT });
         fssSumTemperMCont = Object.values(fssSumTemperMCont[0]);
         fssSumTemperMCont = parseFloat(fssSumTemperMCont[0], 10);
-        var fssTempCountMCont = await connectOlympDB.query("SELECT COUNT(*) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%OLmini%';", { type: connectOlympDB.QueryTypes.SELECT });
+        var fssTempCountMCont = await connectOlympDB.query("SELECT COUNT(*) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%mini%';", { type: connectOlympDB.QueryTypes.SELECT });
         fssTempCountMCont = Object.values(fssTempCountMCont[0]);
         fssTempCountMCont = parseFloat(fssTempCountMCont[0], 10);
         fssSumTemperMCont=fssSumTemperMCont/fssTempCountMCont;
 
         // Прочекаем суммарную температуру по майнерам в основной ферме (>0)
-        var fssSumTemper = await connectOlympDB.query("SELECT SUM(AvgTemperature) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User NOT LIKE '%CONT%';", { type: connectOlympDB.QueryTypes.SELECT });
+        var fssSumTemper = await connectOlympDB.query("SELECT SUM(AvgTemperature) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%OM%';", { type: connectOlympDB.QueryTypes.SELECT });
         fssSumTemper = Object.values(fssSumTemper[0]);
         fssSumTemper = parseFloat(fssSumTemper[0], 10);
-        var fssTempCount= await connectOlympDB.query("SELECT COUNT(*) FROM " + olympDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".onlineminers WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User NOT LIKE '%CONT%';", { type: connectOlympDB.QueryTypes.SELECT });
+        var fssTempCount= await connectOlympDB.query("SELECT COUNT(*) FROM " + olympDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + olympDB + ".OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0 AND User LIKE '%OM%';", { type: connectOlympDB.QueryTypes.SELECT });
         fssTempCount = Object.values(fssTempCount[0]);
         fssTempCount = parseFloat(fssTempCount[0], 10);
         fssSumTemper=fssSumTemper/fssTempCount;
         
         // Проверим время последнего апдейта в БД
-        var fssLUpdOlymp = await connectOlympDB.query("SELECT updatedAt FROM " + olympDB + ".minerstat LIMIT 1");
+        var fssLUpdOlymp = await connectOlympDB.query("SELECT updatedAt FROM " + olympDB + ".MinerStat LIMIT 1");
         fssLUpdOlymp = Object.values(fssLUpdOlymp[0]);
         fssLUpdOlymp = Object.values(fssLUpdOlymp[0]);
         fssLUpdOlymp = String(fssLUpdOlymp[0]);
@@ -499,24 +647,25 @@ async function forceShowStats(){
             }
         }
     }
+    // Smol
     try{
         // Количество машинок в Смоленщине
-        var fssSmolMiners = await connectSmolDB.query("SELECT COUNT(*) FROM " + smolDB + ".onlineminers WHERE OnlineStatus<>0;", { type: connectSmolDB.QueryTypes.SELECT});
+        var fssSmolMiners = await connectSmolDB.query("SELECT COUNT(*) FROM " + smolDB + ".OnlineMiners WHERE OnlineStatus<>0;", { type: connectSmolDB.QueryTypes.SELECT});
         fssSmolMiners = Object.values(fssSmolMiners[0]);
         fssSmolMiners = parseInt(fssSmolMiners[0], 10);
 
         // Количество живых плат в Смоленщине
-        var fssSmolChains = await connectSmolDB.query("SELECT SUM(AliveChains) FROM " + smolDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".onlineminers WHERE OnlineStatus<>0);", { type: connectSmolDB.QueryTypes.SELECT});
+        var fssSmolChains = await connectSmolDB.query("SELECT SUM(AliveChains) FROM " + smolDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".OnlineMiners WHERE OnlineStatus<>0);", { type: connectSmolDB.QueryTypes.SELECT});
         fssSmolChains = Object.values(fssSmolChains[0]);
         fssSmolChains = parseInt(fssSmolChains, 10);
 
         // Хешрейт в Смоленщине
-        var fssSmolRate = await connectSmolDB.query("SELECT SUM(RtHashrate) FROM " + smolDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".onlineminers WHERE OnlineStatus<>0);", { type: connectSmolDB.QueryTypes.SELECT});
+        var fssSmolRate = await connectSmolDB.query("SELECT SUM(RtHashrate) FROM " + smolDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".OnlineMiners WHERE OnlineStatus<>0);", { type: connectSmolDB.QueryTypes.SELECT});
         fssSmolRate = Object.values(fssSmolRate[0]);
         fssSmolRate = parseFloat(fssSmolRate[0], 10);
 
         // Прочекаем немайнящие майнеры
-        var fssUselessSmol = await connectSmolDB.query("SELECT IpAddr FROM " + smolDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".onlineminers WHERE OnlineStatus<>0) AND RtHashrate=0;", { type: connectSmolDB.QueryTypes.SELECT});
+        var fssUselessSmol = await connectSmolDB.query("SELECT IpAddr FROM " + smolDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".OnlineMiners WHERE OnlineStatus<>0) AND RtHashrate=0;", { type: connectSmolDB.QueryTypes.SELECT});
         var resUselessSmol = [];
         for(var i=0; i<fssUselessSmol.length; i++){
             var ip = Object.values(fssUselessSmol[i]);
@@ -524,16 +673,16 @@ async function forceShowStats(){
         }
 
         // Прочекаем суммарную температуру по майнерам (>0)
-        var fssSumTemperSm = await connectSmolDB.query("SELECT SUM(AvgTemperature) FROM " + smolDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".onlineminers WHERE OnlineStatus<>0) AND AvgTemperature>0;", { type: connectSmolDB.QueryTypes.SELECT });
+        var fssSumTemperSm = await connectSmolDB.query("SELECT SUM(AvgTemperature) FROM " + smolDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0;", { type: connectSmolDB.QueryTypes.SELECT });
         fssSumTemperSm = Object.values(fssSumTemperSm[0]);
         fssSumTemperSm = parseFloat(fssSumTemperSm[0], 10);
-        var fssSumTempCountSm = await connectSmolDB.query("SELECT COUNT(*) FROM " + smolDB + ".otherinfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".onlineminers WHERE OnlineStatus<>0) AND AvgTemperature>0;", { type: connectSmolDB.QueryTypes.SELECT });
+        var fssSumTempCountSm = await connectSmolDB.query("SELECT COUNT(*) FROM " + smolDB + ".OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM " + smolDB + ".OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0;", { type: connectSmolDB.QueryTypes.SELECT });
         fssSumTempCountSm = Object.values(fssSumTempCountSm[0]);
         fssSumTempCountSm = parseFloat(fssSumTempCountSm[0], 10);
         fssSumTemperSm=fssSumTemperSm/fssSumTempCountSm;
         
         // Проверим время последнего апдейта в БД
-        var fssLUpdSmol = await connectSmolDB.query("SELECT updatedAt FROM " + smolDB + ".onlineminers LIMIT 1");
+        var fssLUpdSmol = await connectSmolDB.query("SELECT updatedAt FROM " + smolDB + ".OnlineMiners LIMIT 1");
         fssLUpdSmol = Object.values(fssLUpdSmol[0]);
         fssLUpdSmol = Object.values(fssLUpdSmol[0]);
         fssLUpdSmol = String(fssLUpdSmol[0]);
@@ -551,6 +700,62 @@ async function forceShowStats(){
         else{
             for(authUser in auth_users){
                 bot.sendMessage(auth_users[authUser], 'Error Smol:\n'+er);
+            }
+        }
+    }
+    // Meln
+    try{
+        // Количество машинок 
+        var fssMelnMiners = await connectMelnDB.query("SELECT COUNT(*) FROM OnlineMiners WHERE OnlineStatus<>0;", { type: connectMelnDB.QueryTypes.SELECT });
+        fssMelnMiners = Object.values(fssMelnMiners[0]);
+        fssMelnMiners = parseInt(fssMelnMiners[0], 10);
+
+        // Количество живых плат
+        var fssMelnChains = await connectMelnDB.query("SELECT SUM(AliveChains) FROM OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM OnlineMiners WHERE OnlineStatus<>0);", { type: connectMelnDB.QueryTypes.SELECT });
+        fssMelnChains = Object.values(fssMelnChains[0]);
+        fssMelnChains = parseInt(fssMelnChains, 10);
+
+        // Хешрейт 
+        var fssMelnRate = await connectMelnDB.query("SELECT SUM(RtHashrate) FROM OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM OnlineMiners WHERE OnlineStatus<>0);", { type: connectMelnDB.QueryTypes.SELECT });
+        fssMelnRate = Object.values(fssMelnRate[0]);
+        fssMelnRate = parseFloat(fssMelnRate[0], 10);
+
+        // Прочекаем немайнящие майнеры
+        var fssUselessMeln = await connectMelnDB.query("SELECT IpAddr FROM OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM OnlineMiners WHERE OnlineStatus<>0) AND RtHashrate=0;", { type: connectMelnDB.QueryTypes.SELECT});
+        var resUselessMeln = [];
+        for(var i=0; i<fssUselessMeln.length; i++){
+            var ip = Object.values(fssUselessMeln[i]);
+            resUselessMeln.push(ip[0]);
+        }
+
+        // Прочекаем суммарную температуру по майнерам (>0)
+        var fssSumTemper = await connectMelnDB.query("SELECT SUM(AvgTemperature) FROM OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0;", { type: connectMelnDB.QueryTypes.SELECT });
+        fssSumTemper = Object.values(fssSumTemper[0]);
+        fssSumTemper = parseFloat(fssSumTemper[0], 10);
+        var fssSumTempCount = await connectMelnDB.query("SELECT COUNT(*) FROM OtherInfo WHERE IpAddr IN (SELECT IpAddr FROM OnlineMiners WHERE OnlineStatus<>0) AND AvgTemperature>0;", { type: connectMelnDB.QueryTypes.SELECT });
+        fssSumTempCount = Object.values(fssSumTempCount[0]);
+        fssSumTempCount = parseFloat(fssSumTempCount[0], 10);
+        fssSumTemper=fssSumTemper/fssSumTempCount;
+
+        // Проверим время последнего апдейта в БД
+        var fssLUpdMeln = await connectMelnDB.query("SELECT updatedAt FROM MinerStat LIMIT 1");
+        fssLUpdMeln = Object.values(fssLUpdMeln[0]);
+        fssLUpdMeln = Object.values(fssLUpdMeln[0]);
+        fssLUpdMeln = String(fssLUpdMeln[0]);
+       
+        for(var i=0; i<auth_users.length-1; i++){
+            bot.sendMessage(auth_users[i], "В Мельничной: " + "\nМайнеров в сети: " + fssMelnMiners + "\nПлат в сети: " + fssMelnChains + "\nRT-HashRate: " + fssMelnRate.toLocaleString('ru') + " GH/S" +"\nМайнеров с нулевым Rt-HRate: "+resUselessMeln.length+"\n"+resUselessMeln+"\nСредняя температура по ферме: "+fssSumTemper+" °С"+ "\nДата последнего обновления:\n" + fssLUpdMeln);
+        }
+    }
+    catch(er){
+        if(er=="SequelizeConnectionError: connect ETIMEDOUT"){
+            for(authUser in auth_users){
+                bot.sendMessage(auth_users[authUser], 'WARNING! Нет подключения к БД в Мельничной. Проверьте БД и опросник\n'+er);
+            }
+        }
+        else{
+            for(authUser in auth_users){
+                bot.sendMessage(auth_users[authUser], 'Error Meln:\n'+er);
             }
         }
     }
