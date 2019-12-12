@@ -13,7 +13,7 @@
     "node-telegram-bot-api": "^0.30.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.2",
-    "sequelize": "^4.38.0",
+    "sequelize": "^5.15.1",
     "socks5-https-client": "^1.2.1",
     "tgfancy": "^0.13.0"
   }
