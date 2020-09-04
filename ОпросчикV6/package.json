@@ -13,7 +13,7 @@
     "mysql": "^2.15.0",
     "mysql2": "^1.5.3",
     "request-promise": "^4.2.2",
-    "sequelize": "^4.38.0",
+    "sequelize": "^5.15.1",
     "xgminer": "^0.2.3"
   }
 }
